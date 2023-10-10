@@ -1,4 +1,4 @@
-package com.yameizitd.gateway.spoiler.domain.po;
+package com.yameizitd.gateway.spoiler.domain.entity;
 
 import lombok.*;
 
@@ -11,7 +11,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @EqualsAndHashCode
 @ToString
-public class InstancePO implements Serializable {
+public class InstanceEntity implements Serializable {
     @Serial
     private static final long serialVersionUID = 9065429610260913519L;
 

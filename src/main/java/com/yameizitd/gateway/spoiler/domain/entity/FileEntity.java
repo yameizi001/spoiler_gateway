@@ -1,4 +1,4 @@
-package com.yameizitd.gateway.spoiler.domain.po;
+package com.yameizitd.gateway.spoiler.domain.entity;
 
 import com.yameizitd.gateway.spoiler.domain.FileConstants;
 import com.yameizitd.gateway.spoiler.exception.impl.FileInvalidException;
@@ -17,7 +17,7 @@ import java.io.Serializable;
 @AllArgsConstructor
 @EqualsAndHashCode
 @ToString
-public class FilePO implements Serializable {
+public class FileEntity implements Serializable {
     @Serial
     private static final long serialVersionUID = -6223316002239050164L;
 
@@ -26,7 +26,7 @@ public class FilePO implements Serializable {
     private String path;
     private byte[] bytes;
 
-    public static Mono<FilePO> fromFilePart(FilePart filePart) {
+    public static Mono<FileEntity> fromFilePart(FilePart filePart) {
         if (filePart == null) {
             throw new FileInvalidException("File should not be empty");
         }
@@ -39,17 +39,17 @@ public class FilePO implements Serializable {
             throw new FileInvalidException("The file must have a format suffix");
         }
         String suffix = filenameOptions[filenameOptions.length - 1];
-        FilePO filePO = new FilePO();
+        FileEntity fileEntity = new FileEntity();
         long id = IdUtils.nextSnowflakeId();
-        filePO.setId(id);
-        filePO.setName(filename);
-        filePO.setPath(FileConstants.FILE_BASE_PATH + "/" + suffix + "/" + id + "." + suffix);
+        fileEntity.setId(id);
+        fileEntity.setName(filename);
+        fileEntity.setPath(FileConstants.FILE_BASE_PATH + "/" + suffix + "/" + id + "." + suffix);
         return DataBufferUtils.join(filePart.content())
                 // asByteBuffer() is deprecated
                 .map(dataBuffer -> dataBuffer.asByteBuffer().array())
                 .map(bytes -> {
-                    filePO.setBytes(bytes);
-                    return filePO;
+                    fileEntity.setBytes(bytes);
+                    return fileEntity;
                 });
     }
 }

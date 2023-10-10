@@ -1,4 +1,4 @@
-package com.yameizitd.gateway.spoiler.domain.po;
+package com.yameizitd.gateway.spoiler.domain.entity;
 
 import lombok.*;
 
@@ -10,7 +10,7 @@ import java.io.Serializable;
 @AllArgsConstructor
 @EqualsAndHashCode
 @ToString
-public class PropertyPO implements Serializable {
+public class PropertyEntity implements Serializable {
     @Serial
     private static final long serialVersionUID = -6005141123278790486L;
 
