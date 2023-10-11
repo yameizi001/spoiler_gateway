@@ -21,11 +21,12 @@ public class RedisEventPublisher implements EventPublisher {
 
     @Override
     public Mono<Void> publish(Mono<Event> event) {
-        return event.flatMap(e ->
+        return event.flatMap(originEvent ->
                         // block method
                         Mono.fromCallable(() -> {
                             try {
-                                return mapper.writeValueAsString(e);
+                                log.debug("Publishing refresh event: {}", originEvent);
+                                return mapper.writeValueAsString(originEvent);
                             } catch (Exception exception) {
                                 throw new TypeConvertException(
                                         "An error occurred during serializing the event instance",
