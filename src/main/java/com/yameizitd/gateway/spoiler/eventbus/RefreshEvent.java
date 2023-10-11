@@ -17,6 +17,6 @@ public abstract class RefreshEvent implements Event {
     public enum Operation {
         SAVE_SERVICES, DELETE_SERVICES,
         SAVE_INSTANCES, DELETE_INSTANCES,
-        SAVE_ROUTE, DELETE_ROUTES
+        SAVE_ROUTES, DELETE_ROUTES
     }
 }
