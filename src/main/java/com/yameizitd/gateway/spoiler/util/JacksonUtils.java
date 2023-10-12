@@ -12,7 +12,9 @@ import com.fasterxml.jackson.databind.jsontype.PolymorphicTypeValidator;
 import com.fasterxml.jackson.databind.jsontype.impl.StdTypeResolverBuilder;
 import com.yameizitd.gateway.spoiler.exception.impl.TypeConvertException;
 import lombok.extern.slf4j.Slf4j;
+import org.mapstruct.Named;
 import org.springframework.core.KotlinDetector;
+import org.springframework.stereotype.Component;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.StringUtils;
 
@@ -22,6 +24,8 @@ import java.util.Map;
 
 @SuppressWarnings("rawtypes")
 @Slf4j
+@Component
+@Named("JacksonUtils")
 public final class JacksonUtils {
     private static final ObjectMapper mapper = new ObjectMapper();
 
@@ -38,6 +42,7 @@ public final class JacksonUtils {
         return mapper;
     }
 
+    @Named("string2jsonNode")
     public static JsonNode string2jsonNode(String json) {
         if (!StringUtils.hasLength(json))
             return null;
@@ -49,6 +54,7 @@ public final class JacksonUtils {
         }
     }
 
+    @Named("jsonNode2string")
     public static String jsonNode2string(JsonNode json) {
         if (json == null)
             return null;
@@ -60,6 +66,7 @@ public final class JacksonUtils {
         }
     }
 
+    @Named("jsonNode2map")
     public static Map jsonNode2map(JsonNode json) {
         if (json == null)
             return null;
@@ -72,6 +79,7 @@ public final class JacksonUtils {
         }
     }
 
+    @Named("jsonNode2list")
     public static List jsonNode2list(JsonNode json) {
         if (json == null)
             return null;
@@ -84,6 +92,31 @@ public final class JacksonUtils {
         }
     }
 
+    @Named("string2map")
+    public static Map string2map(String json) {
+        if (!StringUtils.hasLength(json))
+            return null;
+        try {
+            return mapper.readValue(json, Map.class);
+        } catch (IllegalArgumentException | JsonProcessingException e) {
+            log.error("Cannot convert json node to map", e);
+            throw new TypeConvertException("Cannot convert json node to map", e);
+        }
+    }
+
+    @Named("map2string")
+    public static String map2string(Map map) {
+        if (map == null)
+            return null;
+        try {
+            return mapper.writeValueAsString(map);
+        } catch (JsonProcessingException e) {
+            log.error("Cannot convert map json string", e);
+            throw new TypeConvertException("Cannot convert map to json string", e);
+        }
+    }
+
+    @Named("map2obj")
     public static <T> T map2obj(Map map, Class<T> clazz) {
         try {
             return mapper.convertValue(map, clazz);
