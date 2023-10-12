@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.yameizitd.gateway.spoiler.mapper.InstanceMapper">
+    <insert id="insert" parameterType="com.yameizitd.gateway.spoiler.domain.entity.InstanceEntity">
+        insert into
+            spoiler_gateway_b_instance("id", "service_id", "name", "scheme", "secure", "host", "port", "weight", 
+            "health", "metadata", "create_time", "update_time", "enabled")
+        values
+            (#{entity.id}, #{entity.serviceId}, #{entity.name}, #{entity.scheme}, #{entity.secure}, #{entity.host}, 
+            #{entity.port}, #{entity.weight}, #{entity.health}, #{entity.metadata}::jsonb, #{entity.createTime}, 
+            #{entity.updateTime}, #{entity.enabled})
+    </insert>
+
+    <delete id="delete">
+        delete from spoiler_gateway_b_instance where "id" = #{id}
+    </delete>
+
+    <delete id="deleteByServiceId">
+        delete from spoiler_gateway_b_instance where "service_id" = #{serviceId}
+    </delete>
+
+    <update id="update" parameterType="com.yameizitd.gateway.spoiler.domain.entity.InstanceEntity">
+        update
+            spoiler_gateway_b_instance
+        <set>
+            <if test="entity.name != null and entity.name != ''">
+                "name" = #{entity.name},
+            </if>
+            <if test="entity.scheme != null and entity.scheme != ''">
+                "scheme" = #{entity.scheme},
+            </if>
+            <if test="entity.secure != null">
+                "secure" = #{entity.secure},
+            </if>
+            <if test="entity.host != null and entity.host != ''">
+                "host" = #{entity.host},
+            </if>
+            <if test="entity.port != null">
+                "port" = #{entity.port},
+            </if>
+            <if test="entity.weight != null">
+                "weight" = #{entity.weight},
+            </if>
+            <if test="entity.metadata != null and entity.metadata != ''">
+                "metadata" = #{entity.metadata}::jsonb,
+            </if>
+            <if test="entity.updateTime != null">
+                "update_time" = #{entity.updateTime},
+            </if>
+        </set>
+        where
+            "id" = #{entity.id}
+    </update>
+
+    <delete id="disable">
+        update spoiler_gateway_b_instance set "enabled" = 'f' where "id" = #{id} and "enabled" = 't'
+    </delete>
+
+    <delete id="enable">
+        update spoiler_gateway_b_instance set "enabled" = 't' where "id" = #{id} and "enabled" = 'f'
+    </delete>
+
+    <select id="selectById" resultType="com.yameizitd.gateway.spoiler.domain.entity.InstanceEntity">
+        select
+            "id", "service_id", "name", "scheme", "secure", "host", "port", "weight", "health", "metadata",
+            "create_time", "update_time", "enabled"
+        from
+            spoiler_gateway_b_instance
+        where
+            "id" = #{id}
+        limit 1
+    </select>
+
+    <select id="selectEnabledByServiceId" resultType="com.yameizitd.gateway.spoiler.domain.entity.InstanceEntity">
+        select
+            "id", "service_id", "name", "scheme", "secure", "host", "port", "weight", "health", "metadata",
+            "create_time", "update_time", "enabled"
+        from
+            spoiler_gateway_b_instance
+        where
+            "service_id" = #{serviceId}
+    </select>
+
+    <select id="selectByOptions" resultType="com.yameizitd.gateway.spoiler.domain.entity.InstanceEntity">
+        select
+            "id", "service_id", "name", "scheme", "secure", "host", "port", "weight", "health", "metadata",
+            "create_time", "update_time", "enabled"
+        from
+            spoiler_gateway_b_instance
+        <where>
+            <if test="query.id != null">
+                and "id" = #{query.id}
+            </if>
+            <if test="query.serviceId != null">
+                and "service_id" = #{query.serviceId}
+            </if>
+            <if test="query.name != null and query.name != ''">
+                and "name" like concat('%', #{query.name}, '%')
+            </if>
+            <if test="query.scheme != null and query.scheme != ''">
+                and "scheme" = #{query.scheme}
+            </if>
+            <if test="query.secure != null">
+                and "secure" = #{query.secure}
+            </if>
+            <if test="query.host != null and query.host != ''">
+                and "host" = #{query.host}
+            </if>
+            <if test="query.port != null">
+                and "port" = #{query.port}
+            </if>
+            <if test="query.health != null">
+                and "health" = #{query.health}
+            </if>
+            <if test="query.enabled != null">
+                and "enabled" = #{query.enabled}
+            </if>
+        </where>
+    </select>
+</mapper>

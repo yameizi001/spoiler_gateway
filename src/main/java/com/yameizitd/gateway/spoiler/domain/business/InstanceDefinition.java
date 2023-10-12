@@ -18,6 +18,9 @@ public class InstanceDefinition implements ServiceInstance, Serializable {
     @Serial
     private static final long serialVersionUID = -2048795876226556305L;
 
+    public static final String INSTANCE_WEIGHT = "instance.weight";
+    public static final String INSTANCE_HEALTH = "instance.health";
+
     private String instanceId;
     private String serviceId;
     private String scheme;
