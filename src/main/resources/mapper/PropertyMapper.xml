@@ -19,6 +19,14 @@
         delete from spoiler_gateway_b_property where "element_id" = #{elementId}
     </delete>
 
+    <select id="inuse">
+        select exists (
+            select property_id from spoiler_gateway_r_template_property where property_id = #{id}
+            union
+            select property_id from spoiler_gateway_r_template_element_property where property_id = #{id}
+        )
+    </select>
+
     <select id="selectByOptions" resultType="com.yameizitd.gateway.spoiler.domain.entity.PropertyEntity">
         select
             "id", "element_id", "alias", "description", "key", "required", "regex"

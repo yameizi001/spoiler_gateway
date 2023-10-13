@@ -16,6 +16,8 @@ public interface PropertyMapper {
 
     int deleteByElementId(Long elementId);
 
+    boolean inuse(Long id);
+
     List<PropertyEntity> selectByOptions(@Param("query") PropertyQueryForm query,
                                          @Param("pgPage") IPage<PropertyEntity> page);
 }

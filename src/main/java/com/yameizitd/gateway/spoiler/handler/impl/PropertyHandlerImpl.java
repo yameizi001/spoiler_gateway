@@ -5,6 +5,7 @@ import com.yameizitd.gateway.spoiler.domain.entity.PropertyEntity;
 import com.yameizitd.gateway.spoiler.domain.form.PropertyCreateForm;
 import com.yameizitd.gateway.spoiler.domain.form.PropertyQueryForm;
 import com.yameizitd.gateway.spoiler.domain.view.PropertyView;
+import com.yameizitd.gateway.spoiler.exception.impl.EntryInuseException;
 import com.yameizitd.gateway.spoiler.exception.impl.EntryNotExistException;
 import com.yameizitd.gateway.spoiler.handler.PropertyHandler;
 import com.yameizitd.gateway.spoiler.interceptor.IPage;
@@ -52,7 +53,9 @@ public class PropertyHandlerImpl implements PropertyHandler {
     @Transactional
     @Override
     public int remove(long id) {
-        // todo: check property is inuse
+        if (propertyMapper.inuse(id)) {
+            throw new EntryInuseException("Property is inuse");
+        }
         return propertyMapper.delete(id);
     }
 

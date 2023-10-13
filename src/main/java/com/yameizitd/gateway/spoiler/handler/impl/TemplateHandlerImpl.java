@@ -76,6 +76,25 @@ public class TemplateHandlerImpl implements TemplateHandler {
 
     // todo: check template valid
     private void checkTemplateValid(TemplateUpsertForm form) {
+        List<ElementWithPropertiesCreateForm> predicates = form.getPredicates();
+        for (ElementWithPropertiesCreateForm predicate : predicates) {
+            checkElementPropertiesValid(predicate);
+        }
+        List<ElementWithPropertiesCreateForm> filters = form.getFilters();
+        for (ElementWithPropertiesCreateForm filter : filters) {
+            checkElementPropertiesValid(filter);
+        }
+        List<PropertyValuesCreateForm> metadata = form.getMetadata();
+        for (PropertyValuesCreateForm meta : metadata) {
+            checkTemplatePropertiesValid(meta);
+        }
+    }
+
+    private void checkElementPropertiesValid(ElementWithPropertiesCreateForm form) {
+
+    }
+
+    private void checkTemplatePropertiesValid(PropertyValuesCreateForm form) {
 
     }
 
