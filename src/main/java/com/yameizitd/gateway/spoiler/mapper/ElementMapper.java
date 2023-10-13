@@ -16,10 +16,13 @@ public interface ElementMapper {
 
     ElementEntity selectById(Long id);
 
+    ElementEntity selectByIdForUpdate(Long elementId);
+
     List<ElementEntity> selectByTemplateIdAndType(@Param("templateId") Long templateId,
                                                   @Param("type") Short type);
 
     List<ElementEntity> selectByOptions(@Param("query") ElementQueryForm query,
                                         @Param("type") Short type,
                                         @Param("pgPage") IPage<ElementEntity> page);
+
 }

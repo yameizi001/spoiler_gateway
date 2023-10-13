@@ -22,6 +22,18 @@
             spoiler_gateway_b_element
         where
             "id" = #{id}
+        limit 1
+    </select>
+
+    <select id="selectByIdForUpdate" resultType="com.yameizitd.gateway.spoiler.domain.entity.ElementEntity">
+        select
+            "id", "name", "alias", "icon", "description", "ordered", "type"
+        from
+            spoiler_gateway_b_element
+        where
+            "id" = #{id}
+        limit 1
+        for update
     </select>
 
     <select id="selectByTemplateIdAndType" resultType="com.yameizitd.gateway.spoiler.domain.entity.ElementEntity">

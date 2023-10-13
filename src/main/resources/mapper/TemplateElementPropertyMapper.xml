@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.yameizitd.gateway.spoiler.mapper.TemplateElementPropertyMapper">
+    <insert id="batchInsertElementsByTemplateId">
+        insert into
+            spoiler_gateway_r_template_element("template_id", "element_id")
+        values
+            <foreach collection="elementIds" item="elementId" separator=",">
+                (#{templateId}, #{elementId})
+            </foreach>
+    </insert>
+
+    <insert id="batchInsertPropertiesByTemplateIdAndElementId">
+        insert into
+            spoiler_gateway_r_template_element_property("template_id", "element_id", "property_id", "values")
+        values
+        <foreach collection="properties" item="property" separator=",">
+            (#{templateId}, #{elementId}, #{property.id}, #{property.values}::jsonb)
+        </foreach>
+    </insert>
+
+    <insert id="batchInsertPropertiesByTemplateId">
+        insert into
+            spoiler_gateway_r_template_property("template_id", "property_id", "values")
+        values
+        <foreach collection="properties" item="property" separator=",">
+            (#{templateId}, #{property.id}, #{property.values}::jsonb)
+        </foreach>
+    </insert>
+    
+    <delete id="deleteElementsByTemplateId">
+        delete from spoiler_gateway_r_template_element where "template_id" = #{templateId}
+    </delete>
+
+    <delete id="deleteElementPropertiesByTemplateId">
+        delete from spoiler_gateway_r_template_element_property where "template_id" = #{templateId}
+    </delete>
+
+    <delete id="deletePropertiesByTemplateId">
+        delete from spoiler_gateway_r_template_property where "template_id" = #{templateId}
+    </delete>
+
+    <select id="selectPropertiesByTemplateId" resultType="com.yameizitd.gateway.spoiler.domain.entity.RichPropertyValuesEntity">
+        select
+            p."id", p."element_id", p."alias", p."description", p."key", p."required", p."regex", tp."values"
+        from
+            spoiler_gateway_r_template_property tp
+        inner join
+            spoiler_gateway_b_property as p
+        on
+            p."id" = tp."property_id"
+        where
+            tp."template_id" = #{templateId}
+    </select>
+
+    <select id="selectPropertiesByTemplateIdAndElementId" resultType="com.yameizitd.gateway.spoiler.domain.entity.RichPropertyValuesEntity">
+        select
+            p."id", p."element_id", p."alias", p."description", p."key", p."required", p."regex", tep."values"
+        from
+            spoiler_gateway_r_template_element_property tep
+        inner join
+            spoiler_gateway_b_property as p
+        on
+            p."id" = tep."property_id"
+        where
+            tep."template_id" = #{templateId} and tep.element_id = #{elementId}
+    </select>
+</mapper>
