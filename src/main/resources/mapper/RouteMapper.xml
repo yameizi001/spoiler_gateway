@@ -74,14 +74,19 @@
 
     <select id="selectByOptions" resultType="com.yameizitd.gateway.spoiler.domain.entity.RichRouteEntity">
         select
-            r."id", r."service_id", s."name" as service_name, r."template_id", r."name", r."description",
-            r."predicates", r."filters", r."ordered", r."metadata", r."create_time", r."update_time", r."enabled"
+            r."id", r."service_id", s."name" as service_name, r."template_id", t."name" as template_name, r."name",
+            r."description", r."predicates", r."filters", r."ordered", r."metadata", r."create_time", r."update_time",
+            r."enabled"
         from
             spoiler_gateway_b_route r
         inner join
             spoiler_gateway_b_service s
         on
             s.id = r.service_id
+        left join
+            spoiler_gateway_b_template t
+        on
+            t.id = r.template_id
         <where>
             <if test="query.id != null">
                 and r."id" = #{id}
