@@ -4,6 +4,7 @@ import com.yameizitd.gateway.spoiler.domain.entity.ElementEntity;
 import com.yameizitd.gateway.spoiler.domain.form.ElementCreateForm;
 import com.yameizitd.gateway.spoiler.domain.form.ElementQueryForm;
 import com.yameizitd.gateway.spoiler.domain.view.ElementView;
+import com.yameizitd.gateway.spoiler.exception.impl.EntryInuseException;
 import com.yameizitd.gateway.spoiler.handler.ElementHandler;
 import com.yameizitd.gateway.spoiler.interceptor.IPage;
 import com.yameizitd.gateway.spoiler.mapper.ElementMapper;
@@ -37,6 +38,10 @@ public class ElementHandlerImpl implements ElementHandler {
     @Override
     public int remove(long id) {
         // todo: check element is inuse
+        boolean inuse = elementMapper.inuse(id);
+        if (inuse) {
+            throw new EntryInuseException("Element is inuse");
+        }
         int deleted = elementMapper.delete(id);
         if (deleted > 0) {
             propertyMapper.deleteByElementId(id);

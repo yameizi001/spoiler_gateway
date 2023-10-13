@@ -36,6 +36,17 @@
         for update
     </select>
 
+    <select id="inuse">
+        select exists (
+            select element_id from spoiler_gateway_b_property where element_id = #{id}
+            union
+            select element_id from spoiler_gateway_r_template_element where element_id = #{id}
+        union
+            select element_id from spoiler_gateway_r_template_element_property where element_id = #{id}
+        )
+        limit 1;
+    </select>
+
     <select id="selectByTemplateIdAndType" resultType="com.yameizitd.gateway.spoiler.domain.entity.ElementEntity">
         select
             e."id", e."name", e."alias", e."icon", e."description", e."ordered", e."type"

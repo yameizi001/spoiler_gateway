@@ -18,6 +18,8 @@ public interface ElementMapper {
 
     ElementEntity selectByIdForUpdate(Long elementId);
 
+    boolean inuse(Long id);
+
     List<ElementEntity> selectByTemplateIdAndType(@Param("templateId") Long templateId,
                                                   @Param("type") Short type);
 
