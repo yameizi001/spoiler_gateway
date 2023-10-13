@@ -3,4 +3,155 @@
         PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.yameizitd.gateway.spoiler.mapper.RouteMapper">
+    <insert id="insert" parameterType="com.yameizitd.gateway.spoiler.domain.entity.RouteEntity">
+        insert into
+            spoiler_gateway_b_route("id", "service_id", "template_id", "name", "description", "predicates", "filters",
+            "ordered", "metadata", "create_time", "update_time", "enabled")
+        values
+            (#{entity.id}, #{entity.serviceId}, #{entity.templateId}, #{entity.name}, #{entity.description},
+            #{entity.predicates}::jsonb, #{entity.filters}::jsonb, #{entity.ordered}, #{entity.metadata}::jsonb,
+            #{entity.createTime}, #{entity.updateTime}, #{entity.enabled})
+    </insert>
+
+    <delete id="delete">
+        delete from spoiler_gateway_b_route where "id" = #{id}
+    </delete>
+
+    <update id="update" parameterType="com.yameizitd.gateway.spoiler.domain.entity.RouteEntity">
+        update
+            spoiler_gateway_b_route
+        <set>
+            <if test="entity.serviceId != null">
+                "service_id" = #{entity.serviceId},
+            </if>
+            <if test="entity.templateId != null">
+                "template_id" = #{entity.templateId},
+            </if>
+            <if test="entity.name != null and entity.name != ''">
+                "name" = #{entity.name},
+            </if>
+            <if test="entity.description != null and entity.description != ''">
+                "description" = #{entity.description},
+            </if>
+            <if test="entity.predicates != null and entity.predicates != ''">
+                "predicates" = #{entity.predicates}::jsonb,
+            </if>
+            <if test="entity.filters != null and entity.filters != ''">
+                "filters" = #{entity.filters}::jsonb,
+            </if>
+            <if test="entity.ordered != null">
+                "ordered" = #{entity.ordered},
+            </if>
+            <if test="entity.metadata != null and entity.metadata != ''">
+                "metadata" = #{entity.metadata}::jsonb,
+            </if>
+            <if test="entity.updateTime != null">
+                "update_time" = #{entity.updateTime},
+            </if>
+        </set>
+        where
+            "id" = #{entity.id}
+    </update>
+
+    <delete id="disable">
+        update spoiler_gateway_b_route set "enabled" = 'f' where "id" = #{id} and "enabled" = 't'
+    </delete>
+
+    <delete id="enable">
+        update spoiler_gateway_b_route set "enabled" = 't' where "id" = #{id} and "enabled" = 'f'
+    </delete>
+
+    <select id="selectById" resultType="com.yameizitd.gateway.spoiler.domain.entity.RouteEntity">
+        select
+            "id", "service_id", "template_id", "name", "description", "predicates", "filters", "ordered",
+            "metadata", "create_time", "update_time", "enabled"
+        from
+            spoiler_gateway_b_route
+        where
+            "id" = #{id}
+        limit 1
+    </select>
+
+    <select id="selectByOptions" resultType="com.yameizitd.gateway.spoiler.domain.entity.RichRouteEntity">
+        select
+            r."id", r."service_id", s."name" as service_name, r."template_id", r."name", r."description",
+            r."predicates", r."filters", r."ordered", r."metadata", r."create_time", r."update_time", r."enabled"
+        from
+            spoiler_gateway_b_route r
+        inner join
+            spoiler_gateway_b_service s
+        on
+            s.id = r.service_id
+        <where>
+            <if test="query.id != null">
+                and r."id" = #{id}
+            </if>
+            <if test="query.serviceId != null">
+                and r."service_id" = #{query.serviceId}
+            </if>
+            <if test="query.templateId != null">
+                and r."template_id" = #{query.templateId}
+            </if>
+            <if test="query.name != null and query.name != ''">
+                and r."name" like concat('%', #{query.name}, '%')
+            </if>
+            <if test="query.predicateQueries != null">
+                <foreach collection="query.predicateQueries" item="predicateQuery">
+                    <if test="predicateQuery.name != null and predicateQuery.name != ''">
+                        and exists (select 1 from jsonb_array_elements(r.predicates) as item
+                        <where>
+                            <if test="predicateQuery.name != null and predicateQuery.name != ''">
+                                item ->> 'name' like concat('%', #{predicateQuery.name}, '%')
+                            </if>
+                            <if test="predicateQuery.args != null and predicateQuery.args != ''">
+                                and exists (
+                                select 1 from jsonb_each_text(item -> 'args')
+                                where value like concat('%', #{predicateQuery.args}, '%')
+                                )
+                            </if>
+                        </where>
+                        )
+                    </if>
+                </foreach>
+            </if>
+            <if test="query.filterQueries != null">
+                <foreach collection="query.filterQueries" item="filterQuery">
+                    <if test="filterQuery.name != null and filterQuery.name != ''">
+                        and exists (select 1 from jsonb_array_elements(r.filters) as item
+                        <where>
+                            <if test="filterQuery.name != null and filterQuery.name != ''">
+                                item ->> 'name' like concat('%', #{filterQuery.name}, '%')
+                            </if>
+                            <if test="filterQuery.args != null and filterQuery.args != ''">
+                                and exists (
+                                select 1 from jsonb_each_text(item -> 'args')
+                                where value like concat('%', #{filterQuery.args}, '%')
+                                )
+                            </if>
+                        </where>
+                        )
+                    </if>
+                </foreach>
+            </if>
+            <if test="query.metadataQueries != null">
+                <foreach collection="query.metadataQueries" item="metadataQuery">
+                    <if test="metadataQuery.name != null and metadataQuery.name != ''">
+                        and exists (select 1 from jsonb_each_text(r.metadata)
+                        <where>
+                            <if test="metadataQuery.name != null and metadataQuery.name != ''">
+                                key like concat('%', #{metadataQuery.name}, '%')
+                            </if>
+                            <if test="metadataQuery.args != null and metadataQuery.args != ''">
+                                and value like concat('%', #{metadataQuery.args}, '%')
+                            </if>
+                        </where>
+                        )
+                    </if>
+                </foreach>
+            </if>
+            <if test="query.enabled != null">
+                and r."enabled" = #{query.enabled}
+            </if>
+        </where>
+    </select>
 </mapper>

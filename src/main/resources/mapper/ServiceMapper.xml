@@ -54,6 +54,17 @@
         limit 1
     </select>
 
+    <select id="selectByIdForUpdate" resultType="com.yameizitd.gateway.spoiler.domain.entity.ServiceEntity">
+        select
+            "id", "name", "description", "metadata", "create_time", "update_time", "enabled"
+        from
+            spoiler_gateway_b_service
+        where
+            "id" = #{id}
+        limit 1
+        for update
+    </select>
+
     <select id="selectByOptions" resultType="com.yameizitd.gateway.spoiler.domain.entity.ServiceEntity">
         select
             "id", "name", "description", "metadata", "create_time", "update_time", "enabled"

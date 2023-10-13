@@ -22,6 +22,8 @@ public interface ServiceMapper {
 
     ServiceEntity selectById(Long id);
 
+    ServiceEntity selectByIdForUpdate(Long id);
+
     List<ServiceEntity> selectByOptions(@Param("query") ServiceQueryForm query,
                                         @Param("pgPage") IPage<ServiceEntity> page);
 }

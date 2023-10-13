@@ -29,8 +29,8 @@ public class InstanceController {
                 .map(GenericResp::ok);
     }
 
-    @DeleteMapping("/instance/{id}")
-    public Mono<GenericResp<Integer>> remove(@PathVariable("id") Long id) {
+    @DeleteMapping("/instance")
+    public Mono<GenericResp<Integer>> remove(@RequestParam("id") Long id) {
         return Mono.just(id)
                 .publishOn(Schedulers.boundedElastic())
                 .map(instanceHandler::remove)
@@ -45,16 +45,16 @@ public class InstanceController {
                 .map(GenericResp::ok);
     }
 
-    @PutMapping("/instance/{id}/disable")
-    public Mono<GenericResp<Integer>> disable(@PathVariable("id") Long id) {
+    @PutMapping("/instance/disable")
+    public Mono<GenericResp<Integer>> disable(@RequestParam("id") Long id) {
         return Mono.just(id)
                 .publishOn(Schedulers.boundedElastic())
                 .map(instanceHandler::disable)
                 .map(GenericResp::ok);
     }
 
-    @PutMapping("/instance/{id}/enable")
-    public Mono<GenericResp<Integer>> enable(@PathVariable("id") Long id) {
+    @PutMapping("/instance/enable")
+    public Mono<GenericResp<Integer>> enable(@RequestParam("id") Long id) {
         return Mono.just(id)
                 .publishOn(Schedulers.boundedElastic())
                 .map(instanceHandler::enable)
@@ -62,8 +62,8 @@ public class InstanceController {
     }
 
     @PostMapping("/instances/_query")
-    public Mono<GenericResp<IPage<InstanceView>>> getPageableByOptions(@RequestBody InstanceQueryForm form) {
-        return Mono.just(form)
+    public Mono<GenericResp<IPage<InstanceView>>> getPageableByOptions(@RequestBody InstanceQueryForm query) {
+        return Mono.just(query)
                 .publishOn(Schedulers.boundedElastic())
                 .map(instanceHandler::getPageableByOptions)
                 .map(GenericResp::ok);

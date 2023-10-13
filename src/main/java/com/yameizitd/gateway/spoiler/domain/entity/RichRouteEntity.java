@@ -1,6 +1,5 @@
-package com.yameizitd.gateway.spoiler.domain.form;
+package com.yameizitd.gateway.spoiler.domain.entity;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import lombok.*;
 
 import java.io.Serial;
@@ -12,21 +11,21 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @EqualsAndHashCode
 @ToString
-public class RouteView implements Serializable {
+public class RichRouteEntity implements Serializable {
     @Serial
     private static final long serialVersionUID = -2420646781425317425L;
 
-    private String id;
-    private String serviceId;
+    private Long id;
+    private Long serviceId;
     private String serviceName;
-    private String templateId;
+    private Long templateId;
     private String templateName;
     private String name;
     private String description;
-    private JsonNode predicates;
-    private JsonNode filters;
+    private String predicates;
+    private String filters;
     private Integer ordered;
-    private JsonNode metadata;
+    private String metadata;
     private LocalDateTime createTime;
     private LocalDateTime updateTime;
     private Boolean enabled;

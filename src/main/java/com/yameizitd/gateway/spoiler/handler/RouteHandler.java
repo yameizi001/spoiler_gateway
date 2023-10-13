@@ -17,5 +17,5 @@ public interface RouteHandler {
 
     int enable(long id);
 
-    IPage<RouteView> getPageableByOptions(RouteQueryForm form);
+    IPage<RouteView> getPageableByOptions(RouteQueryForm query);
 }

@@ -119,9 +119,9 @@ public class InstanceHandlerImpl implements InstanceHandler {
     }
 
     @Override
-    public IPage<InstanceView> getPageableByOptions(InstanceQueryForm form) {
-        IPage<InstanceEntity> page = form.getPage().iPage();
-        List<InstanceEntity> records = instanceMapper.selectByOptions(form, page);
+    public IPage<InstanceView> getPageableByOptions(InstanceQueryForm query) {
+        IPage<InstanceEntity> page = query.getPage().iPage();
+        List<InstanceEntity> records = instanceMapper.selectByOptions(query, page);
         page.setRecords(records);
         return PageUtils.map(page, instanceMapstruct::entity2view);
     }

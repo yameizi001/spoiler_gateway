@@ -1,5 +1,6 @@
 package com.yameizitd.gateway.spoiler.mapper;
 
+import com.yameizitd.gateway.spoiler.domain.entity.RichRouteEntity;
 import com.yameizitd.gateway.spoiler.domain.entity.RouteEntity;
 import com.yameizitd.gateway.spoiler.domain.form.RouteQueryForm;
 import com.yameizitd.gateway.spoiler.interceptor.IPage;
@@ -14,7 +15,7 @@ public interface RouteMapper {
 
     int delete(Long id);
 
-    int edit(@Param("entity") RouteEntity entity);
+    int update(@Param("entity") RouteEntity entity);
 
     int disable(Long id);
 
@@ -22,6 +23,6 @@ public interface RouteMapper {
 
     RouteEntity selectById(Long id);
 
-    List<RouteEntity> selectByOptions(@Param("query") RouteQueryForm query,
-                                      @Param("pgPage") IPage<RouteEntity> page);
+    List<RichRouteEntity> selectByOptions(@Param("query") RouteQueryForm query,
+                                          @Param("pgPage") IPage<RichRouteEntity> page);
 }

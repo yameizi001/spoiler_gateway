@@ -21,5 +21,5 @@ public interface InstanceHandler {
 
     int enableByServiceId(long serviceId);
 
-    IPage<InstanceView> getPageableByOptions(InstanceQueryForm form);
+    IPage<InstanceView> getPageableByOptions(InstanceQueryForm query);
 }

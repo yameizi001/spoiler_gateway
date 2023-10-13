@@ -29,8 +29,8 @@ public class ServiceController {
                 .map(GenericResp::ok);
     }
 
-    @DeleteMapping("/service/{id}")
-    public Mono<GenericResp<Integer>> delete(@PathVariable("id") Long id) {
+    @DeleteMapping("/service")
+    public Mono<GenericResp<Integer>> delete(@RequestParam("id") Long id) {
         return Mono.just(id)
                 .publishOn(Schedulers.boundedElastic())
                 .map(serviceHandler::remove)
@@ -45,16 +45,16 @@ public class ServiceController {
                 .map(GenericResp::ok);
     }
 
-    @PutMapping("/service/{id}/disable")
-    public Mono<GenericResp<Integer>> disable(@PathVariable("id") Long id) {
+    @PutMapping("/service/disable")
+    public Mono<GenericResp<Integer>> disable(@RequestParam("id") Long id) {
         return Mono.just(id)
                 .publishOn(Schedulers.boundedElastic())
                 .map(serviceHandler::disable)
                 .map(GenericResp::ok);
     }
 
-    @PutMapping("/service/{id}/enable")
-    public Mono<GenericResp<Integer>> enable(@PathVariable("id") Long id) {
+    @PutMapping("/service/enable")
+    public Mono<GenericResp<Integer>> enable(@RequestParam("id") Long id) {
         return Mono.just(id)
                 .publishOn(Schedulers.boundedElastic())
                 .map(serviceHandler::enable)
