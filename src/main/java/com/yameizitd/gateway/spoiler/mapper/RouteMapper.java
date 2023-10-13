@@ -23,6 +23,8 @@ public interface RouteMapper {
 
     RouteEntity selectById(Long id);
 
+    boolean existByServiceId(Long serviceId);
+
     List<RichRouteEntity> selectByOptions(@Param("query") RouteQueryForm query,
                                           @Param("pgPage") IPage<RichRouteEntity> page);
 }

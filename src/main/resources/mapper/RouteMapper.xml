@@ -72,6 +72,10 @@
         limit 1
     </select>
 
+    <select id="existByServiceId">
+        select exists (select id from spoiler_gateway_b_route where service_id = #{serviceId})
+    </select>
+
     <select id="selectByOptions" resultType="com.yameizitd.gateway.spoiler.domain.entity.RichRouteEntity">
         select
             r."id", r."service_id", s."name" as service_name, r."template_id", t."name" as template_name, r."name",

@@ -9,9 +9,11 @@ import com.yameizitd.gateway.spoiler.domain.view.ServiceView;
 import com.yameizitd.gateway.spoiler.eventbus.EventPublisher;
 import com.yameizitd.gateway.spoiler.eventbus.RefreshEvent;
 import com.yameizitd.gateway.spoiler.eventbus.ServiceRefreshEvent;
+import com.yameizitd.gateway.spoiler.exception.impl.EntryInuseException;
 import com.yameizitd.gateway.spoiler.handler.InstanceHandler;
 import com.yameizitd.gateway.spoiler.handler.ServiceHandler;
 import com.yameizitd.gateway.spoiler.interceptor.IPage;
+import com.yameizitd.gateway.spoiler.mapper.RouteMapper;
 import com.yameizitd.gateway.spoiler.mapper.ServiceMapper;
 import com.yameizitd.gateway.spoiler.mapstruct.ServiceMapstruct;
 import com.yameizitd.gateway.spoiler.util.PageUtils;
@@ -28,15 +30,18 @@ import java.util.concurrent.TimeUnit;
 @Service
 public class ServiceHandlerImpl implements ServiceHandler {
     private final ServiceMapper serviceMapper;
+    private final RouteMapper routeMapper;
     private final ServiceMapstruct serviceMapstruct;
     private final EventPublisher eventPublisher;
     private final InstanceHandler instanceHandler;
 
     public ServiceHandlerImpl(ServiceMapper serviceMapper,
+                              RouteMapper routeMapper,
                               ServiceMapstruct serviceMapstruct,
                               EventPublisher eventPublisher,
                               InstanceHandler instanceHandler) {
         this.serviceMapper = serviceMapper;
+        this.routeMapper = routeMapper;
         this.serviceMapstruct = serviceMapstruct;
         this.eventPublisher = eventPublisher;
         this.instanceHandler = instanceHandler;
@@ -56,6 +61,11 @@ public class ServiceHandlerImpl implements ServiceHandler {
     @Transactional
     @Override
     public int remove(long id) {
+        // check service is inuse
+        boolean inuse = routeMapper.existByServiceId(id);
+        if (inuse) {
+            throw new EntryInuseException("Service is inuse");
+        }
         int deleted = serviceMapper.delete(id);
         if (deleted > 0) {
             // delete all associated instances

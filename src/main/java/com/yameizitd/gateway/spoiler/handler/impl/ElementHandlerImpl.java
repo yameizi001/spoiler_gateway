@@ -36,7 +36,7 @@ public class ElementHandlerImpl implements ElementHandler {
 
     @Override
     public int remove(long id) {
-        // todo: check element is in use
+        // todo: check element is inuse
         int deleted = elementMapper.delete(id);
         if (deleted > 0) {
             propertyMapper.deleteByElementId(id);
