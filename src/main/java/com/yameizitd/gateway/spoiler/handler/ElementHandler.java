@@ -2,7 +2,6 @@ package com.yameizitd.gateway.spoiler.handler;
 
 import com.yameizitd.gateway.spoiler.domain.form.ElementCreateForm;
 import com.yameizitd.gateway.spoiler.domain.form.ElementQueryForm;
-import com.yameizitd.gateway.spoiler.domain.form.ElementUpdateForm;
 import com.yameizitd.gateway.spoiler.domain.view.ElementView;
 import com.yameizitd.gateway.spoiler.interceptor.IPage;
 
@@ -11,7 +10,5 @@ public interface ElementHandler {
 
     int remove(long id);
 
-    int update(ElementUpdateForm form);
-
-    IPage<ElementView> getByOptions(ElementQueryForm query);
+    IPage<ElementView> getPageableByOptions(ElementQueryForm query);
 }

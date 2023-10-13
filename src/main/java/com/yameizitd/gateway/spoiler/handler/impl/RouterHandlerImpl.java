@@ -112,6 +112,7 @@ public class RouterHandlerImpl implements RouteHandler {
 
     @Override
     public IPage<RouteView> getPageableByOptions(RouteQueryForm query) {
+        // todo: populate template properties
         IPage<RichRouteEntity> page = query.getPage().iPage();
         List<RichRouteEntity> records = routeMapper.selectByOptions(query, page);
         page.setRecords(records);

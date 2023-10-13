@@ -3,4 +3,61 @@
         PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.yameizitd.gateway.spoiler.mapper.ElementMapper">
+    <insert id="insert" parameterType="com.yameizitd.gateway.spoiler.domain.entity.ElementEntity">
+        insert into
+            spoiler_gateway_b_element("id", "name", "alias", "icon", "description", "ordered", "type")
+        values
+            (#{entity.id}, #{entity.name}, #{entity.alias}, #{entity.icon}, #{entity.description}, #{entity.ordered},
+            #{entity.type})
+    </insert>
+
+    <delete id="delete">
+        delete from spoiler_gateway_b_element where "id" = #{id}
+    </delete>
+
+    <select id="selectById" resultType="com.yameizitd.gateway.spoiler.domain.entity.ElementEntity">
+        select
+            "id", "name", "alias", "icon", "description", "ordered", "type"
+        from
+            spoiler_gateway_b_element
+        where
+            "id" = #{id}
+    </select>
+
+    <select id="selectByTemplateIdAndType" resultType="com.yameizitd.gateway.spoiler.domain.entity.ElementEntity">
+        select
+            e."id", e."name", e."alias", e."icon", e."description", e."ordered", e."type"
+        from
+            spoiler_gateway_r_template_element te
+        inner join
+            spoiler_gateway_b_element e
+        on
+            e.id = te.element_id and e.type = #{type}
+        where
+            te.template_id = #{templateId}
+    </select>
+
+    <select id="selectByOptions" resultType="com.yameizitd.gateway.spoiler.domain.entity.ElementEntity">
+        select
+            "id", "name", "alias", "icon", "description", "ordered", "type"
+        from
+            spoiler_gateway_b_element
+        <where>
+            <if test="query.id != null">
+                "id" = #{query.id}
+            </if>
+            <if test="query.name != null and query.name != ''">
+                and "name" like concat('%', #{query.name}, '%')
+            </if>
+            <if test="query.alias != null and query.alias != ''">
+                and "alias" like concat('%', #{query.alias}, '%')
+            </if>
+            <if test="query.ordered != null">
+                "ordered" = #{query.ordered}
+            </if>
+            <if test="type != null">
+                and "type" = #{type}
+            </if>
+        </where>
+    </select>
 </mapper>
