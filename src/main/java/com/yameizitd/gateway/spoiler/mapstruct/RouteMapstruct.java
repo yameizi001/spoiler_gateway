@@ -27,6 +27,9 @@ public interface RouteMapstruct {
     default RouteEntity createForm2entity(RouteCreateForm form) {
         RouteEntity entity = createForm2entity0(form);
         entity.setId(IdUtils.nextSnowflakeId());
+        if (entity.getTemplateId() == null) {
+            entity.setTemplateId(-1L);
+        }
         LocalDateTime now = LocalDateTime.now();
         entity.setCreateTime(now);
         entity.setUpdateTime(now);
@@ -41,6 +44,9 @@ public interface RouteMapstruct {
 
     default RouteEntity updateForm2entity(RouteUpdateForm form) {
         RouteEntity entity = updateForm2entity0(form);
+        if (entity.getTemplateId() == null) {
+            entity.setTemplateId(-1L);
+        }
         entity.setUpdateTime(LocalDateTime.now());
         return entity;
     }

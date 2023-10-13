@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.yameizitd.gateway.spoiler.mapper.PropertyMapper">
+    <insert id="insert" parameterType="com.yameizitd.gateway.spoiler.domain.entity.PropertyEntity">
+        insert into
+            spoiler_gateway_b_property("id", "element_id", "alias", "description", "key", "required", "regex")
+        values
+            (#{entity.id}, #{entity.elementId}, #{entity.alias}, #{entity.description}, #{entity.key},
+            #{entity.required}, #{entity.regex})
+    </insert>
+
+    <delete id="delete">
+        delete from spoiler_gateway_b_property where "id" = #{id}
+    </delete>
+
+    <delete id="deleteByElementId">
+        delete from spoiler_gateway_b_property where "element_id" = #{elementId}
+    </delete>
+
+    <select id="selectByOptions" resultType="com.yameizitd.gateway.spoiler.domain.entity.PropertyEntity">
+        select
+            "id", "element_id", "alias", "description", "key", "required", "regex"
+        from
+            spoiler_gateway_b_property
+        <where>
+            <if test="query.id != null">
+                "id" = #{query.id}
+            </if>
+            <if test="query.elementId != null">
+                and "element_id" = #{query.elementId}
+            </if>
+            <if test="query.alias != null and query.alias != ''">
+                and "alias" like concat('%', #{query.alias}, '%')
+            </if>
+            <if test="query.key != null and query.key != ''">
+                and "key" like concat('%', #{query.key}, '%')
+            </if>
+            <if test="query.required != null">
+                and "required" = #{query.required}
+            </if>
+        </where>
+    </select>
+</mapper>

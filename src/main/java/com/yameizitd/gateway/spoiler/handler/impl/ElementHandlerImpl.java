@@ -7,6 +7,7 @@ import com.yameizitd.gateway.spoiler.domain.view.ElementView;
 import com.yameizitd.gateway.spoiler.handler.ElementHandler;
 import com.yameizitd.gateway.spoiler.interceptor.IPage;
 import com.yameizitd.gateway.spoiler.mapper.ElementMapper;
+import com.yameizitd.gateway.spoiler.mapper.PropertyMapper;
 import com.yameizitd.gateway.spoiler.mapstruct.ElementMapstruct;
 import com.yameizitd.gateway.spoiler.util.PageUtils;
 import org.springframework.stereotype.Service;
@@ -16,10 +17,14 @@ import java.util.List;
 @Service
 public class ElementHandlerImpl implements ElementHandler {
     private final ElementMapper elementMapper;
+    private final PropertyMapper propertyMapper;
     private final ElementMapstruct elementMapstruct;
 
-    public ElementHandlerImpl(ElementMapper elementMapper, ElementMapstruct elementMapstruct) {
+    public ElementHandlerImpl(ElementMapper elementMapper,
+                              PropertyMapper propertyMapper,
+                              ElementMapstruct elementMapstruct) {
         this.elementMapper = elementMapper;
+        this.propertyMapper = propertyMapper;
         this.elementMapstruct = elementMapstruct;
     }
 
@@ -34,7 +39,7 @@ public class ElementHandlerImpl implements ElementHandler {
         // todo: check element is in use
         int deleted = elementMapper.delete(id);
         if (deleted > 0) {
-            // todo: delete associated properties
+            propertyMapper.deleteByElementId(id);
         }
         return deleted;
     }
