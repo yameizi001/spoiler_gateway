@@ -18,6 +18,9 @@ public interface PropertyMapper {
 
     boolean inuse(Long id);
 
+    PropertyEntity selectByIdAndElementIdForUpdate(@Param("id") Long id,
+                                                   @Param("elementId") Long elementId);
+
     List<PropertyEntity> selectByOptions(@Param("query") PropertyQueryForm query,
                                          @Param("pgPage") IPage<PropertyEntity> page);
 }

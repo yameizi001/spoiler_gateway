@@ -37,7 +37,7 @@ public class ElementHandlerImpl implements ElementHandler {
 
     @Override
     public int remove(long id) {
-        // todo: check element is inuse
+        // check element is inuse
         boolean inuse = elementMapper.inuse(id);
         if (inuse) {
             throw new EntryInuseException("Element is inuse");

@@ -27,6 +27,17 @@
         )
     </select>
 
+    <select id="selectByIdAndElementIdForUpdate" resultType="com.yameizitd.gateway.spoiler.domain.entity.PropertyEntity">
+        select
+            "id", "element_id", "alias", "description", "key", "required", "regex"
+        from
+            spoiler_gateway_b_property
+        where
+            id = #{id} and element_id = #{elementId}
+        limit 1
+        for update
+    </select>
+
     <select id="selectByOptions" resultType="com.yameizitd.gateway.spoiler.domain.entity.PropertyEntity">
         select
             "id", "element_id", "alias", "description", "key", "required", "regex"

@@ -1,10 +1,9 @@
 package com.yameizitd.gateway.spoiler.handler.impl;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.yameizitd.gateway.spoiler.domain.ElementType;
-import com.yameizitd.gateway.spoiler.domain.entity.ElementEntity;
-import com.yameizitd.gateway.spoiler.domain.entity.PropertyValuesEntity;
-import com.yameizitd.gateway.spoiler.domain.entity.RichPropertyValuesEntity;
-import com.yameizitd.gateway.spoiler.domain.entity.TemplateEntity;
+import com.yameizitd.gateway.spoiler.domain.entity.*;
 import com.yameizitd.gateway.spoiler.domain.form.ElementWithPropertiesCreateForm;
 import com.yameizitd.gateway.spoiler.domain.form.PropertyValuesCreateForm;
 import com.yameizitd.gateway.spoiler.domain.form.TemplateQueryForm;
@@ -14,9 +13,11 @@ import com.yameizitd.gateway.spoiler.domain.view.PropertyValuesView;
 import com.yameizitd.gateway.spoiler.domain.view.SimpleTemplateView;
 import com.yameizitd.gateway.spoiler.domain.view.TemplateDetail;
 import com.yameizitd.gateway.spoiler.exception.impl.EntryNotExistException;
+import com.yameizitd.gateway.spoiler.exception.impl.IllegalValueException;
 import com.yameizitd.gateway.spoiler.handler.TemplateHandler;
 import com.yameizitd.gateway.spoiler.interceptor.IPage;
 import com.yameizitd.gateway.spoiler.mapper.ElementMapper;
+import com.yameizitd.gateway.spoiler.mapper.PropertyMapper;
 import com.yameizitd.gateway.spoiler.mapper.TemplateElementPropertyMapper;
 import com.yameizitd.gateway.spoiler.mapper.TemplateMapper;
 import com.yameizitd.gateway.spoiler.mapstruct.ElementMapstruct;
@@ -25,12 +26,14 @@ import com.yameizitd.gateway.spoiler.mapstruct.TemplateMapstruct;
 import com.yameizitd.gateway.spoiler.util.PageUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 import java.util.List;
 
 @Service
 public class TemplateHandlerImpl implements TemplateHandler {
     private final TemplateMapper templateMapper;
+    private final PropertyMapper propertyMapper;
     private final TemplateElementPropertyMapper templateElementPropertyMapper;
     private final ElementMapper elementMapper;
     private final TemplateMapstruct templateMapstruct;
@@ -38,12 +41,14 @@ public class TemplateHandlerImpl implements TemplateHandler {
     private final ElementMapstruct elementMapstruct;
 
     public TemplateHandlerImpl(TemplateMapper templateMapper,
+                               PropertyMapper propertyMapper,
                                TemplateElementPropertyMapper templateElementPropertyMapper,
                                ElementMapper elementMapper,
                                TemplateMapstruct templateMapstruct,
                                PropertyValuesMapstruct propertyValuesMapstruct,
                                ElementMapstruct elementMapstruct) {
         this.templateMapper = templateMapper;
+        this.propertyMapper = propertyMapper;
         this.templateElementPropertyMapper = templateElementPropertyMapper;
         this.elementMapper = elementMapper;
         this.templateMapstruct = templateMapstruct;
@@ -74,7 +79,6 @@ public class TemplateHandlerImpl implements TemplateHandler {
         return inserted;
     }
 
-    // todo: check template valid
     private void checkTemplateValid(TemplateUpsertForm form) {
         List<ElementWithPropertiesCreateForm> predicates = form.getPredicates();
         for (ElementWithPropertiesCreateForm predicate : predicates) {
@@ -86,16 +90,49 @@ public class TemplateHandlerImpl implements TemplateHandler {
         }
         List<PropertyValuesCreateForm> metadata = form.getMetadata();
         for (PropertyValuesCreateForm meta : metadata) {
-            checkTemplatePropertiesValid(meta);
+            checkTemplatePropertiesValid(-1L, meta);
         }
     }
 
     private void checkElementPropertiesValid(ElementWithPropertiesCreateForm form) {
-
+        Long elementId = form.getId();
+        String alias = form.getAlias();
+        ElementEntity record = elementMapper.selectByIdForUpdate(elementId);
+        if (record == null) {
+            throw new EntryNotExistException(String.format("Element '%s' not exist", alias));
+        }
+        List<PropertyValuesCreateForm> properties = form.getProperties();
+        if (properties != null && !properties.isEmpty()) {
+            for (PropertyValuesCreateForm property : properties) {
+                checkTemplatePropertiesValid(elementId, property);
+            }
+        }
     }
 
-    private void checkTemplatePropertiesValid(PropertyValuesCreateForm form) {
-
+    private void checkTemplatePropertiesValid(Long elementId, PropertyValuesCreateForm form) {
+        Long propertyId = form.getId();
+        String alias = form.getAlias();
+        PropertyEntity record = propertyMapper.selectByIdAndElementIdForUpdate(propertyId, elementId);
+        if (record == null) {
+            throw new EntryNotExistException(String.format("Property '%s' not exist", alias));
+        }
+        JsonNode values = form.getValues();
+        if (record.getRequired() && (values == null || values.isNull() || values.isEmpty())) {
+            throw new IllegalValueException(String.format("Property '%s' should not be null or empty", alias));
+        }
+        if (!values.isArray()) {
+            throw new IllegalValueException(String.format("Property '%s' should be array", alias));
+        }
+        ArrayNode array = (ArrayNode) values;
+        String regex = record.getRegex();
+        if (StringUtils.hasLength(regex)) {
+            for (JsonNode node : array) {
+                String text = node.asText();
+                if (StringUtils.hasLength(text) && !text.matches(regex)) {
+                    throw new IllegalValueException(String.format("Property '%s' is invalid", alias));
+                }
+            }
+        }
     }
 
     private void insertElementsAndProperties(Long templateId, List<ElementWithPropertiesCreateForm> elements) {
