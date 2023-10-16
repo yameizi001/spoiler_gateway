@@ -6,7 +6,7 @@ import com.yameizitd.gateway.spoiler.domain.entity.ServiceEntity;
 import com.yameizitd.gateway.spoiler.domain.form.RouteCreateForm;
 import com.yameizitd.gateway.spoiler.domain.form.RouteQueryForm;
 import com.yameizitd.gateway.spoiler.domain.form.RouteUpdateForm;
-import com.yameizitd.gateway.spoiler.domain.form.RouteView;
+import com.yameizitd.gateway.spoiler.domain.view.RouteView;
 import com.yameizitd.gateway.spoiler.eventbus.EventPublisher;
 import com.yameizitd.gateway.spoiler.eventbus.RefreshEvent;
 import com.yameizitd.gateway.spoiler.eventbus.RouteRefreshEvent;

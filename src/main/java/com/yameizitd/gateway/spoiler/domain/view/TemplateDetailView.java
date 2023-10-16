@@ -12,7 +12,7 @@ import java.util.List;
 @AllArgsConstructor
 @EqualsAndHashCode
 @ToString
-public class TemplateDetail implements Serializable {
+public class TemplateDetailView implements Serializable {
     @Serial
     private static final long serialVersionUID = 4671473436186217989L;
 

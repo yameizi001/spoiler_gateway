@@ -3,7 +3,7 @@ package com.yameizitd.gateway.spoiler.handler;
 import com.yameizitd.gateway.spoiler.domain.form.RouteCreateForm;
 import com.yameizitd.gateway.spoiler.domain.form.RouteQueryForm;
 import com.yameizitd.gateway.spoiler.domain.form.RouteUpdateForm;
-import com.yameizitd.gateway.spoiler.domain.form.RouteView;
+import com.yameizitd.gateway.spoiler.domain.view.RouteView;
 import com.yameizitd.gateway.spoiler.interceptor.IPage;
 
 public interface RouteHandler {

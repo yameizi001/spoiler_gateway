@@ -3,7 +3,7 @@ package com.yameizitd.gateway.spoiler.controller;
 import com.yameizitd.gateway.spoiler.domain.form.InstanceCreateForm;
 import com.yameizitd.gateway.spoiler.domain.form.InstanceQueryForm;
 import com.yameizitd.gateway.spoiler.domain.form.InstanceUpdateForm;
-import com.yameizitd.gateway.spoiler.domain.view.GenericResp;
+import com.yameizitd.gateway.spoiler.domain.GenericResp;
 import com.yameizitd.gateway.spoiler.domain.view.InstanceView;
 import com.yameizitd.gateway.spoiler.handler.InstanceHandler;
 import com.yameizitd.gateway.spoiler.interceptor.IPage;

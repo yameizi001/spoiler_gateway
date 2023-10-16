@@ -8,7 +8,7 @@ import org.apache.ibatis.annotations.Param;
 public interface FileMapper {
     int insert(@Param("entity") FileEntity entity);
 
-    int delete(@Param("id") Long id);
+    int delete(Long id);
 
-    FileEntity selectById(@Param("id") Long id);
+    FileEntity selectById(Long id);
 }

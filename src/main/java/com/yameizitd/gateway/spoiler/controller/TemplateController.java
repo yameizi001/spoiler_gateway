@@ -2,10 +2,10 @@ package com.yameizitd.gateway.spoiler.controller;
 
 import com.yameizitd.gateway.spoiler.domain.form.TemplateQueryForm;
 import com.yameizitd.gateway.spoiler.domain.form.TemplateUpsertForm;
-import com.yameizitd.gateway.spoiler.domain.view.GenericResp;
+import com.yameizitd.gateway.spoiler.domain.GenericResp;
 import com.yameizitd.gateway.spoiler.domain.view.PropertyValuesView;
 import com.yameizitd.gateway.spoiler.domain.view.SimpleTemplateView;
-import com.yameizitd.gateway.spoiler.domain.view.TemplateDetail;
+import com.yameizitd.gateway.spoiler.domain.view.TemplateDetailView;
 import com.yameizitd.gateway.spoiler.handler.TemplateHandler;
 import com.yameizitd.gateway.spoiler.interceptor.IPage;
 import org.springframework.web.bind.annotation.*;
@@ -57,7 +57,7 @@ public class TemplateController {
     }
 
     @GetMapping("/template")
-    public Mono<GenericResp<TemplateDetail>> getDetailById(@RequestParam("id") Long id) {
+    public Mono<GenericResp<TemplateDetailView>> getDetailById(@RequestParam("id") Long id) {
         return Mono.just(id)
                 .publishOn(Schedulers.boundedElastic())
                 .map(templateHandler::getDetailById)

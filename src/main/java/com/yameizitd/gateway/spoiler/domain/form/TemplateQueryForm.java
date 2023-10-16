@@ -1,5 +1,6 @@
 package com.yameizitd.gateway.spoiler.domain.form;
 
+import com.yameizitd.gateway.spoiler.domain.Page;
 import com.yameizitd.gateway.spoiler.domain.TemplateType;
 import lombok.*;
 

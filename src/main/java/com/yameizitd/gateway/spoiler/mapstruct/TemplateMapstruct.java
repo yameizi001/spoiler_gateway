@@ -4,7 +4,7 @@ import com.yameizitd.gateway.spoiler.domain.TemplateType;
 import com.yameizitd.gateway.spoiler.domain.entity.TemplateEntity;
 import com.yameizitd.gateway.spoiler.domain.form.TemplateUpsertForm;
 import com.yameizitd.gateway.spoiler.domain.view.SimpleTemplateView;
-import com.yameizitd.gateway.spoiler.domain.view.TemplateDetail;
+import com.yameizitd.gateway.spoiler.domain.view.TemplateDetailView;
 import com.yameizitd.gateway.spoiler.util.IdUtils;
 import com.yameizitd.gateway.spoiler.util.JacksonUtils;
 import org.mapstruct.Mapper;
@@ -29,7 +29,7 @@ public interface TemplateMapstruct {
 
     SimpleTemplateView entity2simpleView(TemplateEntity entity);
 
-    TemplateDetail entity2detail(TemplateEntity entity);
+    TemplateDetailView entity2detail(TemplateEntity entity);
 
     @Named("templateType2short")
     default Short templateType2short(TemplateType type) {

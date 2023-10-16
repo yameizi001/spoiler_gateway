@@ -4,7 +4,7 @@ import com.yameizitd.gateway.spoiler.domain.form.TemplateQueryForm;
 import com.yameizitd.gateway.spoiler.domain.form.TemplateUpsertForm;
 import com.yameizitd.gateway.spoiler.domain.view.PropertyValuesView;
 import com.yameizitd.gateway.spoiler.domain.view.SimpleTemplateView;
-import com.yameizitd.gateway.spoiler.domain.view.TemplateDetail;
+import com.yameizitd.gateway.spoiler.domain.view.TemplateDetailView;
 import com.yameizitd.gateway.spoiler.interceptor.IPage;
 
 import java.util.List;
@@ -18,7 +18,7 @@ public interface TemplateHandler {
 
     IPage<SimpleTemplateView> getPageableByOptions(TemplateQueryForm query);
 
-    TemplateDetail getDetailById(long id);
+    TemplateDetailView getDetailById(long id);
 
     List<PropertyValuesView> getPropertiesByTemplateIdAndElementId(long templateId, long elementId);
 }

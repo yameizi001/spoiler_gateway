@@ -2,7 +2,7 @@ package com.yameizitd.gateway.spoiler.controller;
 
 import com.yameizitd.gateway.spoiler.domain.form.PropertyCreateForm;
 import com.yameizitd.gateway.spoiler.domain.form.PropertyQueryForm;
-import com.yameizitd.gateway.spoiler.domain.view.GenericResp;
+import com.yameizitd.gateway.spoiler.domain.GenericResp;
 import com.yameizitd.gateway.spoiler.domain.view.PropertyView;
 import com.yameizitd.gateway.spoiler.handler.PropertyHandler;
 import com.yameizitd.gateway.spoiler.interceptor.IPage;

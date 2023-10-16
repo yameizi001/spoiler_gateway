@@ -3,7 +3,7 @@ package com.yameizitd.gateway.spoiler.controller;
 import com.yameizitd.gateway.spoiler.domain.form.ElementCreateForm;
 import com.yameizitd.gateway.spoiler.domain.form.ElementQueryForm;
 import com.yameizitd.gateway.spoiler.domain.view.ElementView;
-import com.yameizitd.gateway.spoiler.domain.view.GenericResp;
+import com.yameizitd.gateway.spoiler.domain.GenericResp;
 import com.yameizitd.gateway.spoiler.handler.ElementHandler;
 import com.yameizitd.gateway.spoiler.interceptor.IPage;
 import org.springframework.web.bind.annotation.*;

@@ -1,7 +1,7 @@
 package com.yameizitd.gateway.spoiler.controller;
 
 import com.yameizitd.gateway.spoiler.domain.entity.FileEntity;
-import com.yameizitd.gateway.spoiler.domain.view.GenericResp;
+import com.yameizitd.gateway.spoiler.domain.GenericResp;
 import com.yameizitd.gateway.spoiler.exception.impl.EntryNotExistException;
 import com.yameizitd.gateway.spoiler.mapper.FileMapper;
 import org.springframework.core.io.buffer.DataBuffer;

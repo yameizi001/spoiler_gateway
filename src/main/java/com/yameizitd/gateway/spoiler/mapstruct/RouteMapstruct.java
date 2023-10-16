@@ -5,7 +5,7 @@ import com.yameizitd.gateway.spoiler.domain.entity.RichRouteEntity;
 import com.yameizitd.gateway.spoiler.domain.entity.RouteEntity;
 import com.yameizitd.gateway.spoiler.domain.form.RouteCreateForm;
 import com.yameizitd.gateway.spoiler.domain.form.RouteUpdateForm;
-import com.yameizitd.gateway.spoiler.domain.form.RouteView;
+import com.yameizitd.gateway.spoiler.domain.view.RouteView;
 import com.yameizitd.gateway.spoiler.util.IdUtils;
 import com.yameizitd.gateway.spoiler.util.JacksonUtils;
 import org.mapstruct.Mapper;

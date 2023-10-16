@@ -1,4 +1,4 @@
-package com.yameizitd.gateway.spoiler.domain.view;
+package com.yameizitd.gateway.spoiler.domain;
 
 public enum RespEnum {
     OK(200, "success"),

@@ -1,4 +1,4 @@
-package com.yameizitd.gateway.spoiler.domain.form;
+package com.yameizitd.gateway.spoiler.domain;
 
 import com.yameizitd.gateway.spoiler.interceptor.IPage;
 import lombok.*;

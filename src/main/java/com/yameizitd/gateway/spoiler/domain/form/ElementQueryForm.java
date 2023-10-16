@@ -1,6 +1,7 @@
 package com.yameizitd.gateway.spoiler.domain.form;
 
 import com.yameizitd.gateway.spoiler.domain.ElementType;
+import com.yameizitd.gateway.spoiler.domain.Page;
 import lombok.*;
 
 import java.io.Serial;

@@ -1,4 +1,4 @@
-package com.yameizitd.gateway.spoiler.domain.form;
+package com.yameizitd.gateway.spoiler.domain.view;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import lombok.*;

@@ -27,5 +27,6 @@ public interface TemplateElementPropertyMapper {
 
     List<RichPropertyValuesEntity> selectPropertiesByTemplateId(Long templateId);
 
-    List<RichPropertyValuesEntity> selectPropertiesByTemplateIdAndElementId(Long templateId, Long elementId);
+    List<RichPropertyValuesEntity> selectPropertiesByTemplateIdAndElementId(@Param("templateId") Long templateId,
+                                                                            @Param("elementId") Long elementId);
 }

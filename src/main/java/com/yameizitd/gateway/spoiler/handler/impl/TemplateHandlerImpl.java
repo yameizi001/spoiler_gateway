@@ -11,7 +11,7 @@ import com.yameizitd.gateway.spoiler.domain.form.TemplateUpsertForm;
 import com.yameizitd.gateway.spoiler.domain.view.ElementView;
 import com.yameizitd.gateway.spoiler.domain.view.PropertyValuesView;
 import com.yameizitd.gateway.spoiler.domain.view.SimpleTemplateView;
-import com.yameizitd.gateway.spoiler.domain.view.TemplateDetail;
+import com.yameizitd.gateway.spoiler.domain.view.TemplateDetailView;
 import com.yameizitd.gateway.spoiler.exception.impl.EntryNotExistException;
 import com.yameizitd.gateway.spoiler.exception.impl.IllegalValueException;
 import com.yameizitd.gateway.spoiler.handler.TemplateHandler;
@@ -202,12 +202,12 @@ public class TemplateHandlerImpl implements TemplateHandler {
     }
 
     @Override
-    public TemplateDetail getDetailById(long id) {
+    public TemplateDetailView getDetailById(long id) {
         TemplateEntity record = templateMapper.selectById(id);
         if (record == null) {
             throw new EntryNotExistException("Template not exist");
         }
-        TemplateDetail detail = templateMapstruct.entity2detail(record);
+        TemplateDetailView detail = templateMapstruct.entity2detail(record);
         List<ElementEntity> predicateRecords = elementMapper.selectByTemplateIdAndType(
                 id, (short) ElementType.PREDICATE.ordinal()
         );

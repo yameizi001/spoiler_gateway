@@ -1,4 +1,4 @@
-package com.yameizitd.gateway.spoiler.domain.view;
+package com.yameizitd.gateway.spoiler.domain;
 
 import java.io.Serial;
 import java.io.Serializable;

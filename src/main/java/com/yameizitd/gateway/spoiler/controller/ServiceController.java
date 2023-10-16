@@ -3,7 +3,7 @@ package com.yameizitd.gateway.spoiler.controller;
 import com.yameizitd.gateway.spoiler.domain.form.ServiceCreateForm;
 import com.yameizitd.gateway.spoiler.domain.form.ServiceQueryForm;
 import com.yameizitd.gateway.spoiler.domain.form.ServiceUpdateForm;
-import com.yameizitd.gateway.spoiler.domain.view.GenericResp;
+import com.yameizitd.gateway.spoiler.domain.GenericResp;
 import com.yameizitd.gateway.spoiler.domain.view.ServiceView;
 import com.yameizitd.gateway.spoiler.handler.ServiceHandler;
 import com.yameizitd.gateway.spoiler.interceptor.IPage;
