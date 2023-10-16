@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.yameizitd.gateway.spoiler.mapper.FileMapper">
+    <insert id="insert" parameterType="com.yameizitd.gateway.spoiler.domain.entity.FileEntity">
+        insert into
+            spoiler_gateway_b_file("id", "name", "path", "bytes")
+        values
+            (#{entity.id}, #{entity.name}, #{entity.path}, #{entity.bytes})
+    </insert>
+
+    <delete id="delete">
+        delete from spoiler_gateway_b_file where "id" = #{id}
+    </delete>
+
+    <select id="selectById" resultType="com.yameizitd.gateway.spoiler.domain.entity.FileEntity">
+        select "id", "name", "path", "bytes" from spoiler_gateway_b_file where "id" = #{id} limit 1
+    </select>
+</mapper>
