@@ -56,6 +56,8 @@ public interface RouteMapstruct {
     @Mapping(source = "metadata", target = "metadata", qualifiedByName = "jsonNode2string")
     RouteEntity updateForm2entity0(RouteUpdateForm form);
 
+    RouteEntity richEntity2entity(RichRouteEntity richEntity);
+
     @Mapping(source = "predicates", target = "predicates", qualifiedByName = "string2jsonNode")
     @Mapping(source = "filters", target = "filters", qualifiedByName = "string2jsonNode")
     @Mapping(source = "metadata", target = "metadata", qualifiedByName = "string2jsonNode")

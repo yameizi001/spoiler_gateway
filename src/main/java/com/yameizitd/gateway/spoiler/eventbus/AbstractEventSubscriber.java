@@ -6,10 +6,7 @@ import reactor.core.publisher.Mono;
 
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @SuppressWarnings({"rawtypes", "unchecked"})
 @Slf4j
@@ -56,10 +53,10 @@ public class AbstractEventSubscriber implements EventSubscriber {
         return event.flatMap(originEvent -> {
             log.debug("Receive subscribing event: {}", originEvent);
             // exact listener
-            List<EventListener> listeners = this.listenerMap.get(originEvent.getClass());
+            List<EventListener> listeners = getExactEventListener(originEvent.getClass());
             log.debug("Exact listeners: {}", listeners);
             List<Mono> publishers = new ArrayList<>();
-            if (listeners != null && !listeners.isEmpty()) {
+            if (!listeners.isEmpty()) {
                 for (EventListener listener : listeners) {
                     publishers.add(listener.onEvent(Mono.just(originEvent)));
                 }
@@ -73,5 +70,34 @@ public class AbstractEventSubscriber implements EventSubscriber {
                     .onErrorContinue((throwable, o) -> log.error("Failed to handle event", throwable))
                     .then();
         });
+    }
+
+    private List<EventListener> getExactEventListener(Class eventClass) {
+        List<EventListener> listeners = new ArrayList<>();
+        Class eventSuperClass = eventClass.getSuperclass();
+        Set<Class> eventInterfaces = getEventInterfaces(eventClass);
+        Optional.ofNullable(listenerMap.get(eventClass))
+                .ifPresent(listeners::addAll);
+        Optional.ofNullable(listenerMap.get(eventSuperClass))
+                .ifPresent(listeners::addAll);
+        for (Class eventInterface : eventInterfaces) {
+            Optional.ofNullable(listenerMap.get(eventInterface))
+                    .ifPresent(listeners::addAll);
+        }
+        return listeners;
+    }
+
+    private Set<Class> getEventInterfaces(Class eventClass) {
+        Set<Class> interfaces = new HashSet<>();
+        while (eventClass != null) {
+            for (Class clazz : eventClass.getInterfaces()) {
+                if (Event.class.isAssignableFrom(clazz)) {
+                    interfaces.add(clazz);
+                }
+                interfaces.addAll(getEventInterfaces(clazz));
+            }
+            eventClass = eventClass.getSuperclass();
+        }
+        return interfaces;
     }
 }

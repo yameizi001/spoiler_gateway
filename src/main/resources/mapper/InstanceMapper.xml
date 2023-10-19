@@ -118,5 +118,7 @@
                 and "enabled" = #{query.enabled}
             </if>
         </where>
+        order by
+            "id" desc
     </select>
 </mapper>

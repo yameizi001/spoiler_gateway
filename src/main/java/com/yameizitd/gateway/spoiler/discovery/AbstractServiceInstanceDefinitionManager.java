@@ -11,8 +11,8 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 @Slf4j
-public abstract class AbstractServiceInstanceDefinitionManager implements ServiceDefinitionManager,
-        InstanceDefinitionManager, EventListener<RefreshEvent> {
+public abstract class AbstractServiceInstanceDefinitionManager implements ServiceInstanceDefinitionManager,
+        EventListener<RefreshEvent> {
     @Override
     public Mono<Void> onEvent(Mono<RefreshEvent> event) {
         return event.flatMap(originEvent -> {

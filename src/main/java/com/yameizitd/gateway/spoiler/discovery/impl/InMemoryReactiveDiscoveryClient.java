@@ -1,10 +1,14 @@
 package com.yameizitd.gateway.spoiler.discovery.impl;
 
 import com.yameizitd.gateway.spoiler.discovery.AbstractServiceInstanceDefinitionManager;
+import com.yameizitd.gateway.spoiler.discovery.ServiceInstanceDefinitionManager;
+import com.yameizitd.gateway.spoiler.discovery.SysDiscoveryClientLoader;
 import com.yameizitd.gateway.spoiler.domain.business.ServiceDefinition;
 import com.yameizitd.gateway.spoiler.eventbus.EventListener;
 import com.yameizitd.gateway.spoiler.eventbus.RefreshEvent;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.DisposableBean;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.client.discovery.ReactiveDiscoveryClient;
 import org.springframework.core.Ordered;
@@ -13,11 +17,42 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.util.*;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 @Slf4j
 public class InMemoryReactiveDiscoveryClient extends AbstractServiceInstanceDefinitionManager implements
-        ReactiveDiscoveryClient, EventListener<RefreshEvent> {
+        ServiceInstanceDefinitionManager, ReactiveDiscoveryClient, EventListener<RefreshEvent>, InitializingBean,
+        DisposableBean {
     private final Map<String, List<ServiceInstance>> cache = new HashMap<>(256);
+    private final SysDiscoveryClientLoader discoveryClientLoader;
+    private final ScheduledExecutorService executor;
+
+    public InMemoryReactiveDiscoveryClient(SysDiscoveryClientLoader discoveryClientLoader) {
+        this.discoveryClientLoader = discoveryClientLoader;
+        this.executor = Executors.newSingleThreadScheduledExecutor(runnable -> {
+            Thread thread = new Thread(runnable);
+            thread.setName("in-memory-discover-refresh");
+            return thread;
+        });
+    }
+
+    @Override
+    public void afterPropertiesSet() {
+        executor.scheduleWithFixedDelay(() -> {
+            // periodic refresh
+            Map<String, List<ServiceInstance>> serviceInstances = discoveryClientLoader.refresh();
+            cache.clear();
+            cache.putAll(serviceInstances);
+            log.debug("Refresh services from the loader, total: {}", cache.size());
+        }, 10L, 900L, TimeUnit.SECONDS);
+    }
+
+    @Override
+    public void destroy() {
+        executor.shutdown();
+    }
 
     @Override
     public int getOrder() {
