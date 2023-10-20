@@ -53,6 +53,29 @@
             "id" = #{entity.id}
     </update>
 
+    <update id="batchUpdate" parameterType="com.yameizitd.gateway.spoiler.domain.entity.RouteEntity">
+        <foreach collection="entities" item="entity" index="index" open="" close="" separator=";">
+            update
+                spoiler_gateway_b_route
+            <set>
+                <if test="entity.predicates != null and entity.predicates != ''">
+                    "predicates" = #{entity.predicates}::jsonb,
+                </if>
+                <if test="entity.filters != null and entity.filters != ''">
+                    "filters" = #{entity.filters}::jsonb,
+                </if>
+                <if test="entity.metadata != null and entity.metadata != ''">
+                    "metadata" = #{entity.metadata}::jsonb,
+                </if>
+                <if test="entity.updateTime != null">
+                    "update_time" = #{entity.updateTime},
+                </if>
+            </set>
+            where
+                "id" = #{entity.id}
+        </foreach>
+    </update>
+
     <delete id="disable">
         update spoiler_gateway_b_route set "enabled" = 'f' where "id" = #{id} and "enabled" = 't'
     </delete>

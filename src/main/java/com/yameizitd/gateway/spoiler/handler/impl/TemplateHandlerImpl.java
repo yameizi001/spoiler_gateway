@@ -3,6 +3,9 @@ package com.yameizitd.gateway.spoiler.handler.impl;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.yameizitd.gateway.spoiler.domain.ElementType;
+import com.yameizitd.gateway.spoiler.domain.business.ElementWithPropertyValues;
+import com.yameizitd.gateway.spoiler.domain.business.PropertyValues;
+import com.yameizitd.gateway.spoiler.domain.business.RichRouteDefinition;
 import com.yameizitd.gateway.spoiler.domain.entity.*;
 import com.yameizitd.gateway.spoiler.domain.form.ElementWithPropertiesCreateForm;
 import com.yameizitd.gateway.spoiler.domain.form.PropertyValuesCreateForm;
@@ -14,6 +17,8 @@ import com.yameizitd.gateway.spoiler.domain.view.SimpleTemplateView;
 import com.yameizitd.gateway.spoiler.domain.view.TemplateDetailView;
 import com.yameizitd.gateway.spoiler.exception.impl.EntryNotExistException;
 import com.yameizitd.gateway.spoiler.exception.impl.IllegalValueException;
+import com.yameizitd.gateway.spoiler.exception.impl.RouteInvalidException;
+import com.yameizitd.gateway.spoiler.handler.RouteHandler;
 import com.yameizitd.gateway.spoiler.handler.TemplateHandler;
 import com.yameizitd.gateway.spoiler.interceptor.IPage;
 import com.yameizitd.gateway.spoiler.mapper.ElementMapper;
@@ -23,12 +28,15 @@ import com.yameizitd.gateway.spoiler.mapper.TemplateMapper;
 import com.yameizitd.gateway.spoiler.mapstruct.ElementMapstruct;
 import com.yameizitd.gateway.spoiler.mapstruct.PropertyValuesMapstruct;
 import com.yameizitd.gateway.spoiler.mapstruct.TemplateMapstruct;
+import com.yameizitd.gateway.spoiler.route.RouteDefinitionChecker;
 import com.yameizitd.gateway.spoiler.util.PageUtils;
+import org.springframework.cloud.gateway.route.RouteDefinition;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class TemplateHandlerImpl implements TemplateHandler {
@@ -39,6 +47,8 @@ public class TemplateHandlerImpl implements TemplateHandler {
     private final TemplateMapstruct templateMapstruct;
     private final PropertyValuesMapstruct propertyValuesMapstruct;
     private final ElementMapstruct elementMapstruct;
+    private final RouteDefinitionChecker routeDefinitionChecker;
+    private final RouteHandler routeHandler;
 
     public TemplateHandlerImpl(TemplateMapper templateMapper,
                                PropertyMapper propertyMapper,
@@ -46,7 +56,9 @@ public class TemplateHandlerImpl implements TemplateHandler {
                                ElementMapper elementMapper,
                                TemplateMapstruct templateMapstruct,
                                PropertyValuesMapstruct propertyValuesMapstruct,
-                               ElementMapstruct elementMapstruct) {
+                               ElementMapstruct elementMapstruct,
+                               RouteDefinitionChecker routeDefinitionChecker,
+                               RouteHandler routeHandler) {
         this.templateMapper = templateMapper;
         this.propertyMapper = propertyMapper;
         this.templateElementPropertyMapper = templateElementPropertyMapper;
@@ -54,62 +66,67 @@ public class TemplateHandlerImpl implements TemplateHandler {
         this.templateMapstruct = templateMapstruct;
         this.propertyValuesMapstruct = propertyValuesMapstruct;
         this.elementMapstruct = elementMapstruct;
+        this.routeDefinitionChecker = routeDefinitionChecker;
+        this.routeHandler = routeHandler;
     }
 
     @Transactional
     @Override
-    public int create(TemplateUpsertForm form) {
-        // check template valid
-        checkTemplateValid(form);
-        TemplateEntity entity = templateMapstruct.upsertForm2entity(form);
-        // insert template
-        int inserted = templateMapper.insert(entity);
-        if (inserted > 0) {
-            Long templateId = entity.getId();
-            // insert predicates and properties
-            List<ElementWithPropertiesCreateForm> predicates = form.getPredicates();
-            insertElementsAndProperties(templateId, predicates);
-            // insert filters and properties
-            List<ElementWithPropertiesCreateForm> filters = form.getFilters();
-            insertElementsAndProperties(templateId, filters);
-            // insert metadata
-            List<PropertyValuesCreateForm> metadata = form.getMetadata();
-            insertProperties(templateId, null, metadata);
-        }
-        return inserted;
+    public RouteDefinition apply(TemplateUpsertForm form) {
+        return transformAndCheck(form);
     }
 
-    private void checkTemplateValid(TemplateUpsertForm form) {
+    public RouteDefinition transformAndCheck(TemplateUpsertForm form) {
+        RouteDefinition routeDefinition = temporary();
+        Optional.ofNullable(form.getId())
+                .map(String::valueOf)
+                .ifPresent(routeDefinition::setId);
+        RichRouteDefinition richRouteDefinition = checkTemplateValid(form);
+        richRouteDefinition.populateRouteDefinition(routeDefinition);
+        if (!routeDefinitionChecker.check(routeDefinition)) {
+            throw new RouteInvalidException("Template fails to be mapped to route temporarily");
+        }
+        return routeDefinition;
+    }
+
+    private RichRouteDefinition checkTemplateValid(TemplateUpsertForm form) {
+        RichRouteDefinition richRouteDefinition = new RichRouteDefinition();
         List<ElementWithPropertiesCreateForm> predicates = form.getPredicates();
         for (ElementWithPropertiesCreateForm predicate : predicates) {
-            checkElementPropertiesValid(predicate);
+            richRouteDefinition.getPredicates().add(checkElementPropertiesValid(predicate));
         }
         List<ElementWithPropertiesCreateForm> filters = form.getFilters();
         for (ElementWithPropertiesCreateForm filter : filters) {
-            checkElementPropertiesValid(filter);
+            richRouteDefinition.getFilters().add(checkElementPropertiesValid(filter));
         }
         List<PropertyValuesCreateForm> metadata = form.getMetadata();
         for (PropertyValuesCreateForm meta : metadata) {
-            checkTemplatePropertiesValid(-1L, meta);
+            richRouteDefinition.getMetadata().add(checkTemplatePropertiesValid(-1L, meta));
         }
+        return richRouteDefinition;
     }
 
-    private void checkElementPropertiesValid(ElementWithPropertiesCreateForm form) {
+    private ElementWithPropertyValues checkElementPropertiesValid(
+            ElementWithPropertiesCreateForm form) {
         Long elementId = form.getId();
         String alias = form.getAlias();
         ElementEntity record = elementMapper.selectByIdForUpdate(elementId);
         if (record == null) {
             throw new EntryNotExistException(String.format("Element '%s' not exist", alias));
         }
+        ElementWithPropertyValues elementWithPropertyValues = new ElementWithPropertyValues();
+        elementWithPropertyValues.setName(record.getName());
+        elementWithPropertyValues.setOrdered(record.getOrdered());
         List<PropertyValuesCreateForm> properties = form.getProperties();
         if (properties != null && !properties.isEmpty()) {
             for (PropertyValuesCreateForm property : properties) {
-                checkTemplatePropertiesValid(elementId, property);
+                elementWithPropertyValues.getPropertyValues().add(checkTemplatePropertiesValid(elementId, property));
             }
         }
+        return elementWithPropertyValues;
     }
 
-    private void checkTemplatePropertiesValid(Long elementId, PropertyValuesCreateForm form) {
+    private PropertyValues checkTemplatePropertiesValid(Long elementId, PropertyValuesCreateForm form) {
         Long propertyId = form.getId();
         String alias = form.getAlias();
         PropertyEntity record = propertyMapper.selectByIdAndElementIdForUpdate(propertyId, elementId);
@@ -133,7 +150,38 @@ public class TemplateHandlerImpl implements TemplateHandler {
                 }
             }
         }
+        PropertyValues propertyValues = propertyValuesMapstruct.entity2definition(record);
+        propertyValues.setValues(values);
+        return propertyValues;
     }
+
+    @Transactional
+    @Override
+    public int create(TemplateUpsertForm form) {
+        // check template valid
+        RouteDefinition routeDefinition = apply(form);
+        TemplateEntity entity = templateMapstruct.upsertForm2entity(form);
+        // insert template
+        int inserted = templateMapper.upsert(entity);
+        if (inserted > 0) {
+            Long templateId = entity.getId();
+            // insert predicates and properties
+            List<ElementWithPropertiesCreateForm> predicates = form.getPredicates();
+            insertElementsAndProperties(templateId, predicates);
+            // insert filters and properties
+            List<ElementWithPropertiesCreateForm> filters = form.getFilters();
+            insertElementsAndProperties(templateId, filters);
+            // insert metadata
+            List<PropertyValuesCreateForm> metadata = form.getMetadata();
+            insertProperties(templateId, null, metadata);
+        }
+        if (!TEMPORARY_ROUTE_DEFINITION_ID.equals(routeDefinition.getId())) {
+            routeHandler.batchEditByDefinition(routeDefinition);
+        }
+        return inserted;
+    }
+
+
 
     private void insertElementsAndProperties(Long templateId, List<ElementWithPropertiesCreateForm> elements) {
         if (elements != null && !elements.isEmpty()) {
@@ -182,7 +230,13 @@ public class TemplateHandlerImpl implements TemplateHandler {
     @Transactional
     @Override
     public int edit(TemplateUpsertForm form) {
-        int removed = this.remove(form.getId());
+        Long id = form.getId();
+        TemplateEntity record = templateMapper.selectById(id);
+        if (record == null) {
+            throw new EntryNotExistException("Template not exist");
+        }
+        form.setCreateTime(record.getCreateTime());
+        int removed = this.remove(id);
         if (removed > 0) {
             return this.create(form);
         }

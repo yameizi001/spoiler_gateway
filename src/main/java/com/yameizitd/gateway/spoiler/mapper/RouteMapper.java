@@ -17,6 +17,8 @@ public interface RouteMapper {
 
     int update(@Param("entity") RouteEntity entity);
 
+    int batchUpdate(@Param("entities") List<RouteEntity> entities);
+
     int disable(Long id);
 
     int enable(Long id);

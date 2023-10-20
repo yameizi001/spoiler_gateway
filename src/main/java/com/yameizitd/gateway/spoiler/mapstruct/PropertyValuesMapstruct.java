@@ -1,5 +1,7 @@
 package com.yameizitd.gateway.spoiler.mapstruct;
 
+import com.yameizitd.gateway.spoiler.domain.business.PropertyValues;
+import com.yameizitd.gateway.spoiler.domain.entity.PropertyEntity;
 import com.yameizitd.gateway.spoiler.domain.entity.PropertyValuesEntity;
 import com.yameizitd.gateway.spoiler.domain.entity.RichPropertyValuesEntity;
 import com.yameizitd.gateway.spoiler.domain.form.PropertyValuesCreateForm;
@@ -15,4 +17,6 @@ public interface PropertyValuesMapstruct {
 
     @Mapping(source = "values", target = "values", qualifiedByName = "string2jsonNode")
     PropertyValuesView richEntity2view(RichPropertyValuesEntity entity);
+
+    PropertyValues entity2definition(PropertyEntity entity);
 }

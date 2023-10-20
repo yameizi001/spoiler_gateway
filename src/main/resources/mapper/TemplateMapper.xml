@@ -3,12 +3,25 @@
         PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.yameizitd.gateway.spoiler.mapper.TemplateMapper">
-    <insert id="insert" parameterType="com.yameizitd.gateway.spoiler.domain.entity.TemplateEntity">
+    <insert id="upsert" parameterType="com.yameizitd.gateway.spoiler.domain.entity.TemplateEntity">
         insert into
             spoiler_gateway_b_template("id", "name", "description", "type", "create_time", "update_time")
         values
             (#{entity.id}, #{entity.name}, #{entity.description}, #{entity.type}, #{entity.createTime},
             #{entity.updateTime})
+        on conflict ("id") do
+        update
+            <set>
+                <if test="entity.name != null and entity.name != ''">
+                    "name" = #{entity.name},
+                </if>
+                <if test="entity.description != null and entity.description != ''">
+                    "description" = #{entity.description},
+                </if>
+                <if test="entity.updateTime != null">
+                    "update_time" = #{entity.updateTime}
+                </if>
+            </set>
     </insert>
 
     <delete id="delete">

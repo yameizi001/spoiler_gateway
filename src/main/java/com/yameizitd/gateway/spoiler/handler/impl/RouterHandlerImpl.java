@@ -16,16 +16,20 @@ import com.yameizitd.gateway.spoiler.interceptor.IPage;
 import com.yameizitd.gateway.spoiler.mapper.RouteMapper;
 import com.yameizitd.gateway.spoiler.mapper.ServiceMapper;
 import com.yameizitd.gateway.spoiler.mapstruct.RouteMapstruct;
+import com.yameizitd.gateway.spoiler.util.JacksonUtils;
 import com.yameizitd.gateway.spoiler.util.PageUtils;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.cloud.gateway.route.RouteDefinition;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import reactor.core.publisher.Mono;
 
 import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+@Slf4j
 @Service
 public class RouterHandlerImpl implements RouteHandler {
     private final RouteMapper routeMapper;
@@ -85,6 +89,47 @@ public class RouterHandlerImpl implements RouteHandler {
             publish(RefreshEvent.Operation.SAVE_ROUTES, record);
         }
         return updated;
+    }
+
+    @Transactional
+    @Override
+    public void batchEditByDefinition(RouteDefinition routeDefinition) {
+        String templateId = routeDefinition.getId();
+        String predicates = JacksonUtils.list2string(routeDefinition.getPredicates());
+        String filters = JacksonUtils.list2string(routeDefinition.getFilters());
+        String metadata = JacksonUtils.map2string(routeDefinition.getMetadata());
+        batchEdit(1L, Long.valueOf(templateId), predicates, filters, metadata);
+    }
+
+    private void batchEdit(long pageNum, Long templateId, String predicates, String filters, String metadata) {
+        List<RichRouteEntity> records = routeMapper.selectByOptions(
+                new RouteQueryForm(
+                        null,
+                        null,
+                        templateId,
+                        null,
+                        null,
+                        null,
+                        null,
+                        null,
+                        null),
+                IPage.of(pageNum, 20L)
+        );
+        if (records == null || records.isEmpty()) {
+            return;
+        }
+        LocalDateTime now = LocalDateTime.now();
+        List<RouteEntity> entities = records.stream()
+                .peek(item -> {
+                    item.setPredicates(predicates);
+                    item.setFilters(filters);
+                    item.setMetadata(metadata);
+                    item.setUpdateTime(now);
+                })
+                .map(routeMapstruct::richEntity2entity)
+                .toList();
+        routeMapper.batchUpdate(entities);
+        batchEdit(++pageNum, templateId, predicates, filters, metadata);
     }
 
     @Transactional

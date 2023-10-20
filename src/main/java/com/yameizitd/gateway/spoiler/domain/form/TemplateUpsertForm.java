@@ -5,6 +5,8 @@ import lombok.*;
 
 import java.io.Serial;
 import java.io.Serializable;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Data
@@ -19,8 +21,9 @@ public class TemplateUpsertForm implements Serializable {
     private Long id;
     private String name;
     private String description;
-    private List<ElementWithPropertiesCreateForm> predicates;
-    private List<ElementWithPropertiesCreateForm> filters;
-    private List<PropertyValuesCreateForm> metadata;
+    private List<ElementWithPropertiesCreateForm> predicates = new ArrayList<>();
+    private List<ElementWithPropertiesCreateForm> filters = new ArrayList<>();
+    private List<PropertyValuesCreateForm> metadata = new ArrayList<>();
     private TemplateType type;
+    private LocalDateTime createTime;
 }

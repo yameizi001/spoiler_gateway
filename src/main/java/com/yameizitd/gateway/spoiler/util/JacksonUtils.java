@@ -92,6 +92,18 @@ public final class JacksonUtils {
         }
     }
 
+    @Named("list2string")
+    public static String list2string(List list) {
+        if (list == null)
+            return null;
+        try {
+            return mapper.writeValueAsString(list);
+        } catch (JsonProcessingException e) {
+            log.error("Cannot convert list to json string", e);
+            throw new TypeConvertException("Cannot convert list to json string", e);
+        }
+    }
+
     @Named("string2map")
     public static Map string2map(String json) {
         if (!StringUtils.hasLength(json))

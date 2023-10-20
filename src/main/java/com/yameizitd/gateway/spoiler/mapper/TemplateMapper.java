@@ -10,7 +10,7 @@ import java.util.List;
 
 @Mapper
 public interface TemplateMapper {
-    int insert(@Param("entity") TemplateEntity entity);
+    int upsert(@Param("entity") TemplateEntity entity);
 
     int delete(Long id);
 

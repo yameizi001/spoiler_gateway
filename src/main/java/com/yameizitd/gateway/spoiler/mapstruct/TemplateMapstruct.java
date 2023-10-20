@@ -17,9 +17,11 @@ import java.time.LocalDateTime;
 public interface TemplateMapstruct {
     default TemplateEntity upsertForm2entity(TemplateUpsertForm form) {
         TemplateEntity entity = upsertForm2entity0(form);
-        entity.setId(IdUtils.nextSnowflakeId());
         LocalDateTime now = LocalDateTime.now();
-        entity.setCreateTime(now);
+        if (form.getId() == null) {
+            entity.setId(IdUtils.nextSnowflakeId());
+            entity.setCreateTime(now);
+        }
         entity.setUpdateTime(now);
         return entity;
     }
