@@ -3,18 +3,20 @@ package com.yameizitd.gateway.spoiler.handler;
 import com.yameizitd.gateway.spoiler.domain.form.RouteCreateForm;
 import com.yameizitd.gateway.spoiler.domain.form.RouteQueryForm;
 import com.yameizitd.gateway.spoiler.domain.form.RouteUpdateForm;
+import com.yameizitd.gateway.spoiler.domain.form.RouteWithTemplateUpsertForm;
 import com.yameizitd.gateway.spoiler.domain.view.RouteView;
 import com.yameizitd.gateway.spoiler.interceptor.IPage;
-import org.springframework.cloud.gateway.route.RouteDefinition;
 
 public interface RouteHandler {
     int create(RouteCreateForm form);
+
+    int createFromTemplate(RouteWithTemplateUpsertForm form);
 
     int remove(long id);
 
     int edit(RouteUpdateForm form);
 
-    void batchEditByDefinition(RouteDefinition routeDefinition);
+    int editFromTemplate(RouteWithTemplateUpsertForm form);
 
     int disable(long id);
 

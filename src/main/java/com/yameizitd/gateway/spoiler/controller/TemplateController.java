@@ -1,13 +1,14 @@
 package com.yameizitd.gateway.spoiler.controller;
 
+import com.yameizitd.gateway.spoiler.domain.GenericResp;
 import com.yameizitd.gateway.spoiler.domain.form.TemplateQueryForm;
 import com.yameizitd.gateway.spoiler.domain.form.TemplateUpsertForm;
-import com.yameizitd.gateway.spoiler.domain.GenericResp;
 import com.yameizitd.gateway.spoiler.domain.view.PropertyValuesView;
 import com.yameizitd.gateway.spoiler.domain.view.SimpleTemplateView;
 import com.yameizitd.gateway.spoiler.domain.view.TemplateDetailView;
 import com.yameizitd.gateway.spoiler.handler.TemplateHandler;
 import com.yameizitd.gateway.spoiler.interceptor.IPage;
+import org.springframework.cloud.gateway.route.RouteDefinition;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
@@ -25,7 +26,7 @@ public class TemplateController {
     }
 
     @PostMapping("/template")
-    public Mono<GenericResp<Integer>> create(@RequestBody TemplateUpsertForm form) {
+    public Mono<GenericResp<RouteDefinition>> create(@RequestBody TemplateUpsertForm form) {
         return Mono.just(form)
                 .publishOn(Schedulers.boundedElastic())
                 .map(templateHandler::create)
@@ -41,7 +42,7 @@ public class TemplateController {
     }
 
     @PutMapping("/template")
-    public Mono<GenericResp<Integer>> modify(@RequestBody TemplateUpsertForm form) {
+    public Mono<GenericResp<RouteDefinition>> edit(@RequestBody TemplateUpsertForm form) {
         return Mono.just(form)
                 .publishOn(Schedulers.boundedElastic())
                 .map(templateHandler::edit)

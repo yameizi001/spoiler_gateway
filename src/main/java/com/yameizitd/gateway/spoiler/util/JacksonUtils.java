@@ -92,6 +92,18 @@ public final class JacksonUtils {
         }
     }
 
+    @Named("list2jsonNode")
+    public static JsonNode list2jsonNode(List list) {
+        if (list == null)
+            return null;
+        try {
+            return mapper.readTree(mapper.writeValueAsString(list));
+        } catch (JsonProcessingException e) {
+            log.error("Cannot convert list to json node", e);
+            throw new TypeConvertException("Cannot convert list to json node", e);
+        }
+    }
+
     @Named("list2string")
     public static String list2string(List list) {
         if (list == null)
@@ -113,6 +125,18 @@ public final class JacksonUtils {
         } catch (IllegalArgumentException | JsonProcessingException e) {
             log.error("Cannot convert json node to map", e);
             throw new TypeConvertException("Cannot convert json node to map", e);
+        }
+    }
+
+    @Named("map2jsonNode")
+    public static JsonNode map2jsonNode(Map map) {
+        if (map == null)
+            return null;
+        try {
+            return mapper.readTree(mapper.writeValueAsString(map));
+        } catch (JsonProcessingException e) {
+            log.error("Cannot convert map json string", e);
+            throw new TypeConvertException("Cannot convert map to json string", e);
         }
     }
 

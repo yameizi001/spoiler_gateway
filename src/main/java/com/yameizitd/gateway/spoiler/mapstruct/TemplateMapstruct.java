@@ -22,6 +22,9 @@ public interface TemplateMapstruct {
             entity.setId(IdUtils.nextSnowflakeId());
             entity.setCreateTime(now);
         }
+        if (form.getType() == null) {
+            form.setType(TemplateType.TEMPLATED);
+        }
         entity.setUpdateTime(now);
         return entity;
     }

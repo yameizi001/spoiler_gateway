@@ -1,17 +1,18 @@
 package com.yameizitd.gateway.spoiler.handler.impl;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.yameizitd.gateway.spoiler.domain.TemplateType;
 import com.yameizitd.gateway.spoiler.domain.entity.RichRouteEntity;
 import com.yameizitd.gateway.spoiler.domain.entity.RouteEntity;
 import com.yameizitd.gateway.spoiler.domain.entity.ServiceEntity;
-import com.yameizitd.gateway.spoiler.domain.form.RouteCreateForm;
-import com.yameizitd.gateway.spoiler.domain.form.RouteQueryForm;
-import com.yameizitd.gateway.spoiler.domain.form.RouteUpdateForm;
+import com.yameizitd.gateway.spoiler.domain.form.*;
 import com.yameizitd.gateway.spoiler.domain.view.RouteView;
 import com.yameizitd.gateway.spoiler.eventbus.EventPublisher;
 import com.yameizitd.gateway.spoiler.eventbus.RefreshEvent;
 import com.yameizitd.gateway.spoiler.eventbus.RouteRefreshEvent;
 import com.yameizitd.gateway.spoiler.exception.impl.EntryNotExistException;
 import com.yameizitd.gateway.spoiler.handler.RouteHandler;
+import com.yameizitd.gateway.spoiler.handler.TemplateHandler;
 import com.yameizitd.gateway.spoiler.interceptor.IPage;
 import com.yameizitd.gateway.spoiler.mapper.RouteMapper;
 import com.yameizitd.gateway.spoiler.mapper.ServiceMapper;
@@ -25,7 +26,6 @@ import org.springframework.transaction.annotation.Transactional;
 import reactor.core.publisher.Mono;
 
 import java.time.Duration;
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -36,15 +36,18 @@ public class RouterHandlerImpl implements RouteHandler {
     private final ServiceMapper serviceMapper;
     private final RouteMapstruct routeMapstruct;
     private final EventPublisher eventPublisher;
+    private final TemplateHandler templateHandler;
 
     public RouterHandlerImpl(RouteMapper routeMapper,
                              ServiceMapper serviceMapper,
                              RouteMapstruct routeMapstruct,
-                             EventPublisher eventPublisher) {
+                             EventPublisher eventPublisher,
+                             TemplateHandler templateHandler) {
         this.routeMapper = routeMapper;
         this.serviceMapper = serviceMapper;
         this.routeMapstruct = routeMapstruct;
         this.eventPublisher = eventPublisher;
+        this.templateHandler = templateHandler;
     }
 
     @Transactional
@@ -64,6 +67,32 @@ public class RouterHandlerImpl implements RouteHandler {
         if (serviceRecord == null) {
             throw new EntryNotExistException("Service not exist");
         }
+    }
+
+    @Transactional
+    @Override
+    public int createFromTemplate(RouteWithTemplateUpsertForm form) {
+        TemplateUpsertForm templateForm = form.getTemplate();
+        templateForm.setType(TemplateType.INSTANT);
+        // create template
+        RouteDefinition routeDefinition = templateHandler.create(templateForm);
+        String templateId = routeDefinition.getId();
+        JsonNode predicates = JacksonUtils.list2jsonNode(routeDefinition.getPredicates());
+        JsonNode filters = JacksonUtils.list2jsonNode(routeDefinition.getFilters());
+        JsonNode metadata = JacksonUtils.map2jsonNode(routeDefinition.getMetadata());
+        // build route create form
+        RouteCreateForm routeForm = new RouteCreateForm(
+                form.getServiceId(),
+                Long.valueOf(templateId),
+                form.getName(),
+                form.getDescription(),
+                predicates,
+                filters,
+                form.getOrdered(),
+                metadata
+        );
+        // create route
+        return create(routeForm);
     }
 
     @Transactional
@@ -93,43 +122,34 @@ public class RouterHandlerImpl implements RouteHandler {
 
     @Transactional
     @Override
-    public void batchEditByDefinition(RouteDefinition routeDefinition) {
-        String templateId = routeDefinition.getId();
-        String predicates = JacksonUtils.list2string(routeDefinition.getPredicates());
-        String filters = JacksonUtils.list2string(routeDefinition.getFilters());
-        String metadata = JacksonUtils.map2string(routeDefinition.getMetadata());
-        batchEdit(1L, Long.valueOf(templateId), predicates, filters, metadata);
-    }
-
-    private void batchEdit(long pageNum, Long templateId, String predicates, String filters, String metadata) {
-        List<RichRouteEntity> records = routeMapper.selectByOptions(
-                new RouteQueryForm(
-                        null,
-                        null,
-                        templateId,
-                        null,
-                        null,
-                        null,
-                        null,
-                        null,
-                        null),
-                IPage.of(pageNum, 20L)
-        );
-        if (records == null || records.isEmpty()) {
-            return;
+    public int editFromTemplate(RouteWithTemplateUpsertForm form) {
+        Long routeId = form.getId();
+        RouteEntity record = routeMapper.selectById(routeId);
+        if (record == null) {
+            throw new EntryNotExistException("Route not exit");
         }
-        LocalDateTime now = LocalDateTime.now();
-        List<RouteEntity> entities = records.stream()
-                .peek(item -> {
-                    item.setPredicates(predicates);
-                    item.setFilters(filters);
-                    item.setMetadata(metadata);
-                    item.setUpdateTime(now);
-                })
-                .map(routeMapstruct::richEntity2entity)
-                .toList();
-        routeMapper.batchUpdate(entities);
-        batchEdit(++pageNum, templateId, predicates, filters, metadata);
+        TemplateUpsertForm templateForm = form.getTemplate();
+        templateForm.setType(TemplateType.INSTANT);
+        // edit template
+        RouteDefinition routeDefinition = templateHandler.edit(templateForm);
+        String templateId = routeDefinition.getId();
+        JsonNode predicates = JacksonUtils.list2jsonNode(routeDefinition.getPredicates());
+        JsonNode filters = JacksonUtils.list2jsonNode(routeDefinition.getFilters());
+        JsonNode metadata = JacksonUtils.map2jsonNode(routeDefinition.getMetadata());
+        // build route update form
+        RouteUpdateForm routeForm = new RouteUpdateForm(
+                routeId,
+                record.getServiceId(),
+                Long.valueOf(templateId),
+                record.getName(),
+                record.getDescription(),
+                predicates,
+                filters,
+                record.getOrdered(),
+                metadata
+        );
+        // edit route
+        return edit(routeForm);
     }
 
     @Transactional

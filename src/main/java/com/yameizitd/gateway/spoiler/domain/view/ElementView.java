@@ -5,6 +5,7 @@ import lombok.*;
 
 import java.io.Serial;
 import java.io.Serializable;
+import java.util.List;
 
 @Data
 @NoArgsConstructor
@@ -22,4 +23,5 @@ public class ElementView implements Serializable {
     private String description;
     private Integer ordered;
     private ElementType type;
+    private List<PropertyValuesView> properties;
 }

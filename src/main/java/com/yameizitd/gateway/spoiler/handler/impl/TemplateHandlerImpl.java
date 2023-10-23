@@ -7,80 +7,83 @@ import com.yameizitd.gateway.spoiler.domain.business.ElementWithPropertyValues;
 import com.yameizitd.gateway.spoiler.domain.business.PropertyValues;
 import com.yameizitd.gateway.spoiler.domain.business.RichRouteDefinition;
 import com.yameizitd.gateway.spoiler.domain.entity.*;
-import com.yameizitd.gateway.spoiler.domain.form.ElementWithPropertiesCreateForm;
-import com.yameizitd.gateway.spoiler.domain.form.PropertyValuesCreateForm;
-import com.yameizitd.gateway.spoiler.domain.form.TemplateQueryForm;
-import com.yameizitd.gateway.spoiler.domain.form.TemplateUpsertForm;
+import com.yameizitd.gateway.spoiler.domain.form.*;
 import com.yameizitd.gateway.spoiler.domain.view.ElementView;
 import com.yameizitd.gateway.spoiler.domain.view.PropertyValuesView;
 import com.yameizitd.gateway.spoiler.domain.view.SimpleTemplateView;
 import com.yameizitd.gateway.spoiler.domain.view.TemplateDetailView;
+import com.yameizitd.gateway.spoiler.eventbus.EventPublisher;
+import com.yameizitd.gateway.spoiler.eventbus.RefreshEvent;
+import com.yameizitd.gateway.spoiler.eventbus.RouteRefreshEvent;
 import com.yameizitd.gateway.spoiler.exception.impl.EntryNotExistException;
 import com.yameizitd.gateway.spoiler.exception.impl.IllegalValueException;
 import com.yameizitd.gateway.spoiler.exception.impl.RouteInvalidException;
-import com.yameizitd.gateway.spoiler.handler.RouteHandler;
 import com.yameizitd.gateway.spoiler.handler.TemplateHandler;
 import com.yameizitd.gateway.spoiler.interceptor.IPage;
-import com.yameizitd.gateway.spoiler.mapper.ElementMapper;
-import com.yameizitd.gateway.spoiler.mapper.PropertyMapper;
-import com.yameizitd.gateway.spoiler.mapper.TemplateElementPropertyMapper;
-import com.yameizitd.gateway.spoiler.mapper.TemplateMapper;
+import com.yameizitd.gateway.spoiler.mapper.*;
 import com.yameizitd.gateway.spoiler.mapstruct.ElementMapstruct;
 import com.yameizitd.gateway.spoiler.mapstruct.PropertyValuesMapstruct;
+import com.yameizitd.gateway.spoiler.mapstruct.RouteMapstruct;
 import com.yameizitd.gateway.spoiler.mapstruct.TemplateMapstruct;
 import com.yameizitd.gateway.spoiler.route.RouteDefinitionChecker;
+import com.yameizitd.gateway.spoiler.util.JacksonUtils;
 import com.yameizitd.gateway.spoiler.util.PageUtils;
 import org.springframework.cloud.gateway.route.RouteDefinition;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
+import reactor.core.publisher.Mono;
 
+import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
 
 @Service
 public class TemplateHandlerImpl implements TemplateHandler {
-    private final TemplateMapper templateMapper;
-    private final PropertyMapper propertyMapper;
-    private final TemplateElementPropertyMapper templateElementPropertyMapper;
     private final ElementMapper elementMapper;
+    private final PropertyMapper propertyMapper;
+    private final TemplateMapper templateMapper;
+    private final TemplateElementPropertyMapper templateElementPropertyMapper;
+    private final RouteMapper routeMapper;
+    private final ElementMapstruct elementMapstruct;
     private final TemplateMapstruct templateMapstruct;
     private final PropertyValuesMapstruct propertyValuesMapstruct;
-    private final ElementMapstruct elementMapstruct;
+    private final RouteMapstruct routeMapstruct;
     private final RouteDefinitionChecker routeDefinitionChecker;
-    private final RouteHandler routeHandler;
+    private final EventPublisher eventPublisher;
 
-    public TemplateHandlerImpl(TemplateMapper templateMapper,
+    public TemplateHandlerImpl(ElementMapper elementMapper,
                                PropertyMapper propertyMapper,
+                               TemplateMapper templateMapper,
                                TemplateElementPropertyMapper templateElementPropertyMapper,
-                               ElementMapper elementMapper,
+                               RouteMapper routeMapper,
+                               ElementMapstruct elementMapstruct,
                                TemplateMapstruct templateMapstruct,
                                PropertyValuesMapstruct propertyValuesMapstruct,
-                               ElementMapstruct elementMapstruct,
+                               RouteMapstruct routeMapstruct,
                                RouteDefinitionChecker routeDefinitionChecker,
-                               RouteHandler routeHandler) {
-        this.templateMapper = templateMapper;
-        this.propertyMapper = propertyMapper;
-        this.templateElementPropertyMapper = templateElementPropertyMapper;
+                               EventPublisher eventPublisher) {
         this.elementMapper = elementMapper;
+        this.propertyMapper = propertyMapper;
+        this.templateMapper = templateMapper;
+        this.templateElementPropertyMapper = templateElementPropertyMapper;
+        this.routeMapper = routeMapper;
+        this.elementMapstruct = elementMapstruct;
         this.templateMapstruct = templateMapstruct;
         this.propertyValuesMapstruct = propertyValuesMapstruct;
-        this.elementMapstruct = elementMapstruct;
+        this.routeMapstruct = routeMapstruct;
         this.routeDefinitionChecker = routeDefinitionChecker;
-        this.routeHandler = routeHandler;
+        this.eventPublisher = eventPublisher;
     }
 
     @Transactional
     @Override
-    public RouteDefinition apply(TemplateUpsertForm form) {
-        return transformAndCheck(form);
+    public RouteDefinition checkAndApply(TemplateUpsertForm form) {
+        return this.checkAndApply0(form);
     }
 
-    public RouteDefinition transformAndCheck(TemplateUpsertForm form) {
+    public RouteDefinition checkAndApply0(TemplateUpsertForm form) {
         RouteDefinition routeDefinition = temporary();
-        Optional.ofNullable(form.getId())
-                .map(String::valueOf)
-                .ifPresent(routeDefinition::setId);
         RichRouteDefinition richRouteDefinition = checkTemplateValid(form);
         richRouteDefinition.populateRouteDefinition(routeDefinition);
         if (!routeDefinitionChecker.check(routeDefinition)) {
@@ -157,9 +160,15 @@ public class TemplateHandlerImpl implements TemplateHandler {
 
     @Transactional
     @Override
-    public int create(TemplateUpsertForm form) {
+    public RouteDefinition create(TemplateUpsertForm form) {
         // check template valid
-        RouteDefinition routeDefinition = apply(form);
+        RouteDefinition routeDefinition = this.checkAndApply(form);
+        long id = this.createWithoutCheck(form);
+        routeDefinition.setId(String.valueOf(id));
+        return routeDefinition;
+    }
+
+    private long createWithoutCheck(TemplateUpsertForm form) {
         TemplateEntity entity = templateMapstruct.upsertForm2entity(form);
         // insert template
         int inserted = templateMapper.upsert(entity);
@@ -175,13 +184,8 @@ public class TemplateHandlerImpl implements TemplateHandler {
             List<PropertyValuesCreateForm> metadata = form.getMetadata();
             insertProperties(templateId, null, metadata);
         }
-        if (!TEMPORARY_ROUTE_DEFINITION_ID.equals(routeDefinition.getId())) {
-            routeHandler.batchEditByDefinition(routeDefinition);
-        }
-        return inserted;
+        return entity.getId();
     }
-
-
 
     private void insertElementsAndProperties(Long templateId, List<ElementWithPropertiesCreateForm> elements) {
         if (elements != null && !elements.isEmpty()) {
@@ -229,18 +233,68 @@ public class TemplateHandlerImpl implements TemplateHandler {
 
     @Transactional
     @Override
-    public int edit(TemplateUpsertForm form) {
+    public RouteDefinition edit(TemplateUpsertForm form) {
         Long id = form.getId();
         TemplateEntity record = templateMapper.selectById(id);
         if (record == null) {
             throw new EntryNotExistException("Template not exist");
         }
         form.setCreateTime(record.getCreateTime());
+        // remove entity and associated entities first
         int removed = this.remove(id);
         if (removed > 0) {
-            return this.create(form);
+            // create template
+            RouteDefinition routeDefinition = this.create(form);
+            if (routeDefinition != null) {
+                // batch update associated routes
+                this.batchEditByDefinition(routeDefinition);
+            }
+            return routeDefinition;
         }
-        return 0;
+        throw new EntryNotExistException("Template failed to edit");
+    }
+
+    private void batchEditByDefinition(RouteDefinition routeDefinition) {
+        String templateId = routeDefinition.getId();
+        String predicates = JacksonUtils.list2string(routeDefinition.getPredicates());
+        String filters = JacksonUtils.list2string(routeDefinition.getFilters());
+        String metadata = JacksonUtils.map2string(routeDefinition.getMetadata());
+        batchEdit(1L, Long.valueOf(templateId), predicates, filters, metadata);
+    }
+
+    private void batchEdit(long pageNum, Long templateId, String predicates, String filters, String metadata) {
+        List<RichRouteEntity> records = routeMapper.selectByOptions(
+                new RouteQueryForm(
+                        null,
+                        null,
+                        templateId,
+                        null,
+                        null,
+                        null,
+                        null,
+                        null,
+                        null),
+                IPage.of(pageNum, 20L)
+        );
+        if (records == null || records.isEmpty()) {
+            return;
+        }
+        LocalDateTime now = LocalDateTime.now();
+        List<RouteEntity> entities = records.stream()
+                .peek(item -> {
+                    item.setPredicates(predicates);
+                    item.setFilters(filters);
+                    item.setMetadata(metadata);
+                    item.setUpdateTime(now);
+                })
+                .map(routeMapstruct::richEntity2entity)
+                .toList();
+        routeMapper.batchUpdate(entities);
+        eventPublisher.publish(Mono.just(new RouteRefreshEvent(
+                RefreshEvent.Operation.SAVE_ROUTES,
+                entities.stream().map(routeMapstruct::entity2definition).toList()
+        ))).block(Duration.ofSeconds(2L));
+        batchEdit(++pageNum, templateId, predicates, filters, metadata);
     }
 
     @Override
@@ -266,8 +320,17 @@ public class TemplateHandlerImpl implements TemplateHandler {
                 id, (short) ElementType.PREDICATE.ordinal()
         );
         if (predicateRecords != null && !predicateRecords.isEmpty()) {
+            // populate properties of element
             List<ElementView> predicates = predicateRecords.stream()
                     .map(elementMapstruct::entity2view)
+                    .peek(view -> {
+                        List<PropertyValuesView> properties = templateElementPropertyMapper
+                                .selectPropertiesByTemplateIdAndElementId(id, Long.valueOf(view.getId()))
+                                .stream()
+                                .map(propertyValuesMapstruct::richEntity2view)
+                                .toList();
+                        view.setProperties(properties);
+                    })
                     .toList();
             detail.setPredicates(predicates);
         }
@@ -275,8 +338,17 @@ public class TemplateHandlerImpl implements TemplateHandler {
                 id, (short) ElementType.FILTER.ordinal()
         );
         if (filterRecords != null && !filterRecords.isEmpty()) {
+            // populate properties of element
             List<ElementView> filters = filterRecords.stream()
                     .map(elementMapstruct::entity2view)
+                    .peek(view -> {
+                        List<PropertyValuesView> properties = templateElementPropertyMapper
+                                .selectPropertiesByTemplateIdAndElementId(id, Long.valueOf(view.getId()))
+                                .stream()
+                                .map(propertyValuesMapstruct::richEntity2view)
+                                .toList();
+                        view.setProperties(properties);
+                    })
                     .toList();
             detail.setFilters(filters);
         }

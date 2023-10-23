@@ -17,9 +17,9 @@ public interface TemplateHandler {
     String TEMPORARY_ROUTE_DEFINITION_ID = "__spoiler_gateway_embed_unreachable_route";
     String TEMPORARY_ROUTE_DEFINITION_URI = "lb://__spoiler_gateway_embed_unreachable_service";
 
-    RouteDefinition apply(TemplateUpsertForm form);
+    RouteDefinition checkAndApply(TemplateUpsertForm form);
 
-    int create(TemplateUpsertForm form);
+    RouteDefinition create(TemplateUpsertForm form);
 
     default RouteDefinition temporary() {
         RouteDefinition routeDefinition = new RouteDefinition();
@@ -34,7 +34,7 @@ public interface TemplateHandler {
 
     int remove(long id);
 
-    int edit(TemplateUpsertForm form);
+    RouteDefinition edit(TemplateUpsertForm form);
 
     IPage<SimpleTemplateView> getPageableByOptions(TemplateQueryForm query);
 

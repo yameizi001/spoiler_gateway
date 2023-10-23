@@ -109,11 +109,11 @@
         inner join
             spoiler_gateway_b_service s
         on
-            s.id = r.service_id
+            s."id" = r."service_id"
         left join
             spoiler_gateway_b_template t
         on
-            t.id = r.template_id
+            t."id" = r."template_id"
         <where>
             <if test="query.id != null">
                 and r."id" = #{id}
@@ -186,6 +186,6 @@
             </if>
         </where>
         order by
-            "id" desc
+            r."id" desc
     </select>
 </mapper>
