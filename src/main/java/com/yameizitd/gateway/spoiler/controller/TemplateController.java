@@ -41,6 +41,14 @@ public class TemplateController {
                 .map(GenericResp::ok);
     }
 
+    @PostMapping("/template/apply")
+    public Mono<GenericResp<RouteDefinition>> apply(@RequestBody TemplateUpsertForm form) {
+        return Mono.just(form)
+                .publishOn(Schedulers.boundedElastic())
+                .map(templateHandler::checkAndApply)
+                .map(GenericResp::ok);
+    }
+
     @PutMapping("/template")
     public Mono<GenericResp<RouteDefinition>> edit(@RequestBody TemplateUpsertForm form) {
         return Mono.just(form)

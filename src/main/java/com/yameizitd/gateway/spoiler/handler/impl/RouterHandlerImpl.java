@@ -26,6 +26,7 @@ import org.springframework.transaction.annotation.Transactional;
 import reactor.core.publisher.Mono;
 
 import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -72,7 +73,9 @@ public class RouterHandlerImpl implements RouteHandler {
     @Transactional
     @Override
     public int createFromTemplate(RouteWithTemplateUpsertForm form) {
+        checkRouteAssociatedEntity(form.getServiceId());
         TemplateUpsertForm templateForm = form.getTemplate();
+        templateForm.setName(LocalDateTime.now().toString());
         templateForm.setType(TemplateType.INSTANT);
         // create template
         RouteDefinition routeDefinition = templateHandler.create(templateForm);
@@ -122,13 +125,18 @@ public class RouterHandlerImpl implements RouteHandler {
 
     @Transactional
     @Override
-    public int editByTemplate(RouteWithTemplateUpsertForm form) {
+    public int editFromTemplate(RouteWithTemplateUpsertForm form) {
+        // check service
+        Long serviceId = form.getServiceId();
+        checkRouteAssociatedEntity(serviceId);
+        // check route
         Long routeId = form.getId();
         RouteEntity record = routeMapper.selectById(routeId);
         if (record == null) {
             throw new EntryNotExistException("Route not exit");
         }
         TemplateUpsertForm templateForm = form.getTemplate();
+        templateForm.setName(LocalDateTime.now().toString());
         templateForm.setType(TemplateType.INSTANT);
         // edit template
         RouteDefinition routeDefinition = templateHandler.edit(templateForm);
@@ -139,7 +147,7 @@ public class RouterHandlerImpl implements RouteHandler {
         // build route update form
         RouteUpdateForm routeForm = new RouteUpdateForm(
                 routeId,
-                record.getServiceId(),
+                serviceId,
                 Long.valueOf(templateId),
                 record.getName(),
                 record.getDescription(),

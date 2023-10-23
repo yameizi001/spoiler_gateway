@@ -71,10 +71,10 @@ public class RouteController {
     }
 
     @PutMapping("/route/template")
-    public Mono<GenericResp<Integer>> editByTemplate(@RequestBody RouteWithTemplateUpsertForm form) {
+    public Mono<GenericResp<Integer>> editFromTemplate(@RequestBody RouteWithTemplateUpsertForm form) {
         return Mono.just(form)
                 .publishOn(Schedulers.boundedElastic())
-                .map(routeHandler::editByTemplate)
+                .map(routeHandler::editFromTemplate)
                 .map(GenericResp::ok);
     }
 

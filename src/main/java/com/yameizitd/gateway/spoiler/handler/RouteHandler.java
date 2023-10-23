@@ -16,7 +16,7 @@ public interface RouteHandler {
 
     int edit(RouteUpdateForm form);
 
-    int editByTemplate(RouteWithTemplateUpsertForm form);
+    int editFromTemplate(RouteWithTemplateUpsertForm form);
 
     int disable(long id);
 
