@@ -122,7 +122,7 @@ public class RouterHandlerImpl implements RouteHandler {
 
     @Transactional
     @Override
-    public int editFromTemplate(RouteWithTemplateUpsertForm form) {
+    public int editByTemplate(RouteWithTemplateUpsertForm form) {
         Long routeId = form.getId();
         RouteEntity record = routeMapper.selectById(routeId);
         if (record == null) {

@@ -1,10 +1,11 @@
 package com.yameizitd.gateway.spoiler.controller;
 
+import com.yameizitd.gateway.spoiler.domain.GenericResp;
 import com.yameizitd.gateway.spoiler.domain.form.RouteCreateForm;
 import com.yameizitd.gateway.spoiler.domain.form.RouteQueryForm;
 import com.yameizitd.gateway.spoiler.domain.form.RouteUpdateForm;
+import com.yameizitd.gateway.spoiler.domain.form.RouteWithTemplateUpsertForm;
 import com.yameizitd.gateway.spoiler.domain.view.RouteView;
-import com.yameizitd.gateway.spoiler.domain.GenericResp;
 import com.yameizitd.gateway.spoiler.handler.RouteHandler;
 import com.yameizitd.gateway.spoiler.interceptor.IPage;
 import org.springframework.web.bind.annotation.*;
@@ -26,6 +27,14 @@ public class RouteController {
         return Mono.just(form)
                 .publishOn(Schedulers.boundedElastic())
                 .map(routeHandler::create)
+                .map(GenericResp::ok);
+    }
+
+    @PostMapping("/route/template")
+    public Mono<GenericResp<Integer>> createFromTemplate(@RequestBody RouteWithTemplateUpsertForm form) {
+        return Mono.just(form)
+                .publishOn(Schedulers.boundedElastic())
+                .map(routeHandler::createFromTemplate)
                 .map(GenericResp::ok);
     }
 
@@ -58,6 +67,14 @@ public class RouteController {
         return Mono.just(form)
                 .publishOn(Schedulers.boundedElastic())
                 .map(routeHandler::edit)
+                .map(GenericResp::ok);
+    }
+
+    @PutMapping("/route/template")
+    public Mono<GenericResp<Integer>> editByTemplate(@RequestBody RouteWithTemplateUpsertForm form) {
+        return Mono.just(form)
+                .publishOn(Schedulers.boundedElastic())
+                .map(routeHandler::editByTemplate)
                 .map(GenericResp::ok);
     }
 
