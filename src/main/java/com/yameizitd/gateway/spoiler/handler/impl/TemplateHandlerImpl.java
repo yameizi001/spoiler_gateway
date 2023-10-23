@@ -3,6 +3,7 @@ package com.yameizitd.gateway.spoiler.handler.impl;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.yameizitd.gateway.spoiler.domain.ElementType;
+import com.yameizitd.gateway.spoiler.domain.TemplateType;
 import com.yameizitd.gateway.spoiler.domain.business.ElementWithPropertyValues;
 import com.yameizitd.gateway.spoiler.domain.business.PropertyValues;
 import com.yameizitd.gateway.spoiler.domain.business.RichRouteDefinition;
@@ -222,6 +223,19 @@ public class TemplateHandlerImpl implements TemplateHandler {
     @Override
     public int remove(long id) {
         int deleted = templateMapper.delete(id);
+        if (deleted > 0) {
+            // delete associated records
+            templateElementPropertyMapper.deleteElementsByTemplateId(id);
+            templateElementPropertyMapper.deleteElementPropertiesByTemplateId(id);
+            templateElementPropertyMapper.deletePropertiesByTemplateId(id);
+        }
+        return deleted;
+    }
+
+    @Transactional
+    @Override
+    public int removeByIdAndType(long id, TemplateType type) {
+        int deleted = templateMapper.deleteByIdAndType(id, templateMapstruct.templateType2short(type));
         if (deleted > 0) {
             // delete associated records
             templateElementPropertyMapper.deleteElementsByTemplateId(id);

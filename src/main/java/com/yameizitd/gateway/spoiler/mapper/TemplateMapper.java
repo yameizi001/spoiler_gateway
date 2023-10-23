@@ -14,6 +14,8 @@ public interface TemplateMapper {
 
     int delete(Long id);
 
+    int deleteByIdAndType(@Param("id") Long id, @Param("type") Short type);
+
     TemplateEntity selectById(Long id);
 
     List<TemplateEntity> selectByOptions(@Param("query") TemplateQueryForm query,

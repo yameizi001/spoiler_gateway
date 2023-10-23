@@ -101,11 +101,15 @@ public class RouterHandlerImpl implements RouteHandler {
     @Transactional
     @Override
     public int remove(long id) {
+        RouteEntity record = routeMapper.selectById(id);
+        if (record == null) {
+            throw new EntryNotExistException("Route not exist");
+        }
         int deleted = routeMapper.delete(id);
         if (deleted > 0) {
-            RouteEntity entity = new RouteEntity();
-            entity.setId(id);
-            publish(RefreshEvent.Operation.DELETE_ROUTES, entity);
+            // remove associated instant template
+            templateHandler.removeByIdAndType(record.getTemplateId(), TemplateType.INSTANT);
+            publish(RefreshEvent.Operation.DELETE_ROUTES, record);
         }
         return deleted;
     }
@@ -149,11 +153,11 @@ public class RouterHandlerImpl implements RouteHandler {
                 routeId,
                 serviceId,
                 Long.valueOf(templateId),
-                record.getName(),
-                record.getDescription(),
+                form.getName(),
+                form.getDescription(),
                 predicates,
                 filters,
-                record.getOrdered(),
+                form.getOrdered(),
                 metadata
         );
         // edit route

@@ -28,6 +28,10 @@
         delete from spoiler_gateway_b_template where "id" = #{id}
     </delete>
 
+    <delete id="deleteByIdAndType">
+        delete from spoiler_gateway_b_template where "id" = #{id} and "type" = #{type}
+    </delete>
+
     <select id="selectById" resultType="com.yameizitd.gateway.spoiler.domain.entity.TemplateEntity">
         select
             "id", "name", "description", "type", "create_time", "update_time"

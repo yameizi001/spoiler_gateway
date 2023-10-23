@@ -1,5 +1,6 @@
 package com.yameizitd.gateway.spoiler.handler;
 
+import com.yameizitd.gateway.spoiler.domain.TemplateType;
 import com.yameizitd.gateway.spoiler.domain.form.TemplateQueryForm;
 import com.yameizitd.gateway.spoiler.domain.form.TemplateUpsertForm;
 import com.yameizitd.gateway.spoiler.domain.view.PropertyValuesView;
@@ -33,6 +34,8 @@ public interface TemplateHandler {
     }
 
     int remove(long id);
+
+    int removeByIdAndType(long id, TemplateType type);
 
     RouteDefinition edit(TemplateUpsertForm form);
 
