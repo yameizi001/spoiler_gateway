@@ -13,6 +13,7 @@ import com.yameizitd.gateway.spoiler.mapper.ElementMapper;
 import com.yameizitd.gateway.spoiler.mapper.PropertyMapper;
 import com.yameizitd.gateway.spoiler.mapstruct.PropertyMapstruct;
 import com.yameizitd.gateway.spoiler.util.PageUtils;
+import org.springframework.aop.framework.AopContext;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -35,7 +36,7 @@ public class PropertyHandlerImpl implements PropertyHandler {
     @Transactional
     @Override
     public int create(PropertyCreateForm form) {
-        checkPropertyAssociatedEntity(form.getElementId());
+        ((PropertyHandlerImpl) AopContext.currentProxy()).checkPropertyAssociatedEntity(form.getElementId());
         PropertyEntity entity = propertyMapstruct.createForm2entity(form);
         return propertyMapper.insert(entity);
     }

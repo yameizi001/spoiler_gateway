@@ -17,6 +17,7 @@ import com.yameizitd.gateway.spoiler.mapper.ServiceMapper;
 import com.yameizitd.gateway.spoiler.mapstruct.InstanceMapstruct;
 import com.yameizitd.gateway.spoiler.util.PageUtils;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.aop.framework.AopContext;
 import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -52,7 +53,7 @@ public class InstanceHandlerImpl implements InstanceHandler {
         InstanceEntity entity = instanceMapstruct.createForm2entity(form);
         int inserted = instanceMapper.insert(entity);
         if (inserted > 0) {
-            publish(RefreshEvent.Operation.SAVE_INSTANCES, entity);
+            ((InstanceHandlerImpl) AopContext.currentProxy()).publish(RefreshEvent.Operation.SAVE_INSTANCES, entity);
         }
         return inserted;
     }
@@ -63,7 +64,7 @@ public class InstanceHandlerImpl implements InstanceHandler {
         InstanceEntity record = instanceMapper.selectById(id);
         int deleted = instanceMapper.delete(id);
         if (deleted > 0) {
-            publish(RefreshEvent.Operation.DELETE_INSTANCES, record);
+            ((InstanceHandlerImpl) AopContext.currentProxy()).publish(RefreshEvent.Operation.DELETE_INSTANCES, record);
         }
         return deleted;
     }
@@ -80,7 +81,7 @@ public class InstanceHandlerImpl implements InstanceHandler {
         InstanceEntity record = instanceMapper.selectById(id);
         int disabled = instanceMapper.disable(id);
         if (disabled > 0) {
-            publish(RefreshEvent.Operation.DELETE_INSTANCES, record);
+            ((InstanceHandlerImpl) AopContext.currentProxy()).publish(RefreshEvent.Operation.DELETE_INSTANCES, record);
         }
         return disabled;
     }
@@ -91,7 +92,7 @@ public class InstanceHandlerImpl implements InstanceHandler {
         InstanceEntity record = instanceMapper.selectById(id);
         int enabled = instanceMapper.enable(id);
         if (enabled > 0) {
-            publish(RefreshEvent.Operation.SAVE_INSTANCES, record);
+            ((InstanceHandlerImpl) AopContext.currentProxy()).publish(RefreshEvent.Operation.SAVE_INSTANCES, record);
         }
         return enabled;
     }
@@ -101,7 +102,7 @@ public class InstanceHandlerImpl implements InstanceHandler {
     public int enableByServiceId(long serviceId) {
         List<InstanceEntity> records = instanceMapper.selectEnabledByServiceId(serviceId);
         if (records != null && !records.isEmpty()) {
-            publish(RefreshEvent.Operation.SAVE_INSTANCES, records);
+            ((InstanceHandlerImpl) AopContext.currentProxy()).publish(RefreshEvent.Operation.SAVE_INSTANCES, records);
             return records.size();
         }
         return 0;
@@ -113,7 +114,7 @@ public class InstanceHandlerImpl implements InstanceHandler {
         InstanceEntity entity = instanceMapstruct.updateForm2entity(form);
         int updated = instanceMapper.update(entity);
         if (updated > 0) {
-            publish(RefreshEvent.Operation.SAVE_INSTANCES, entity);
+            ((InstanceHandlerImpl) AopContext.currentProxy()).publish(RefreshEvent.Operation.SAVE_INSTANCES, entity);
         }
         return updated;
     }

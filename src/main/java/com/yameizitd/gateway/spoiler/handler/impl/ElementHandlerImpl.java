@@ -12,6 +12,7 @@ import com.yameizitd.gateway.spoiler.mapper.PropertyMapper;
 import com.yameizitd.gateway.spoiler.mapstruct.ElementMapstruct;
 import com.yameizitd.gateway.spoiler.util.PageUtils;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -29,12 +30,14 @@ public class ElementHandlerImpl implements ElementHandler {
         this.elementMapstruct = elementMapstruct;
     }
 
+    @Transactional
     @Override
     public int create(ElementCreateForm form) {
         ElementEntity entity = elementMapstruct.createForm2entity(form);
         return elementMapper.insert(entity);
     }
 
+    @Transactional
     @Override
     public int remove(long id) {
         // check element is inuse

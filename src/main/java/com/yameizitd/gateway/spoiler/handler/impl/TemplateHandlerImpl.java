@@ -29,6 +29,7 @@ import com.yameizitd.gateway.spoiler.mapstruct.TemplateMapstruct;
 import com.yameizitd.gateway.spoiler.route.RouteDefinitionChecker;
 import com.yameizitd.gateway.spoiler.util.JacksonUtils;
 import com.yameizitd.gateway.spoiler.util.PageUtils;
+import org.springframework.aop.framework.AopContext;
 import org.springframework.cloud.gateway.route.RouteDefinition;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -80,7 +81,7 @@ public class TemplateHandlerImpl implements TemplateHandler {
     @Transactional
     @Override
     public RouteDefinition checkAndApply(TemplateUpsertForm form) {
-        return this.checkAndApply0(form);
+        return ((TemplateHandlerImpl) AopContext.currentProxy()).checkAndApply0(form);
     }
 
     public RouteDefinition checkAndApply0(TemplateUpsertForm form) {
@@ -163,8 +164,8 @@ public class TemplateHandlerImpl implements TemplateHandler {
     @Override
     public RouteDefinition create(TemplateUpsertForm form) {
         // check template valid
-        RouteDefinition routeDefinition = this.checkAndApply(form);
-        long id = this.createWithoutCheck(form);
+        RouteDefinition routeDefinition = checkAndApply(form);
+        long id = ((TemplateHandlerImpl) AopContext.currentProxy()).createWithoutCheck(form);
         routeDefinition.setId(String.valueOf(id));
         return routeDefinition;
     }
@@ -258,10 +259,10 @@ public class TemplateHandlerImpl implements TemplateHandler {
         int removed = this.remove(id);
         if (removed > 0) {
             // create template
-            RouteDefinition routeDefinition = this.create(form);
+            RouteDefinition routeDefinition = create(form);
             if (routeDefinition != null) {
                 // batch update associated routes
-                this.batchEditByDefinition(routeDefinition);
+                ((TemplateHandlerImpl) AopContext.currentProxy()).batchEditByDefinition(routeDefinition);
             }
             return routeDefinition;
         }

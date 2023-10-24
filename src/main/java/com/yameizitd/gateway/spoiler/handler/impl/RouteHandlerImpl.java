@@ -20,6 +20,7 @@ import com.yameizitd.gateway.spoiler.mapstruct.RouteMapstruct;
 import com.yameizitd.gateway.spoiler.util.JacksonUtils;
 import com.yameizitd.gateway.spoiler.util.PageUtils;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.aop.framework.AopContext;
 import org.springframework.cloud.gateway.route.RouteDefinition;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -32,18 +33,18 @@ import java.util.concurrent.TimeUnit;
 
 @Slf4j
 @Service
-public class RouterHandlerImpl implements RouteHandler {
+public class RouteHandlerImpl implements RouteHandler {
     private final RouteMapper routeMapper;
     private final ServiceMapper serviceMapper;
     private final RouteMapstruct routeMapstruct;
     private final EventPublisher eventPublisher;
     private final TemplateHandler templateHandler;
 
-    public RouterHandlerImpl(RouteMapper routeMapper,
-                             ServiceMapper serviceMapper,
-                             RouteMapstruct routeMapstruct,
-                             EventPublisher eventPublisher,
-                             TemplateHandler templateHandler) {
+    public RouteHandlerImpl(RouteMapper routeMapper,
+                            ServiceMapper serviceMapper,
+                            RouteMapstruct routeMapstruct,
+                            EventPublisher eventPublisher,
+                            TemplateHandler templateHandler) {
         this.routeMapper = routeMapper;
         this.serviceMapper = serviceMapper;
         this.routeMapstruct = routeMapstruct;
@@ -54,11 +55,11 @@ public class RouterHandlerImpl implements RouteHandler {
     @Transactional
     @Override
     public int create(RouteCreateForm form) {
-        checkRouteAssociatedEntity(form.getServiceId());
+        ((RouteHandlerImpl) AopContext.currentProxy()).checkRouteAssociatedEntity(form.getServiceId());
         RouteEntity entity = routeMapstruct.createForm2entity(form);
         int inserted = routeMapper.insert(entity);
         if (inserted > 0) {
-            publish(RefreshEvent.Operation.SAVE_ROUTES, entity);
+            ((RouteHandlerImpl) AopContext.currentProxy()).publish(RefreshEvent.Operation.SAVE_ROUTES, entity);
         }
         return inserted;
     }
@@ -73,7 +74,7 @@ public class RouterHandlerImpl implements RouteHandler {
     @Transactional
     @Override
     public int createFromTemplate(RouteWithTemplateUpsertForm form) {
-        checkRouteAssociatedEntity(form.getServiceId());
+        ((RouteHandlerImpl) AopContext.currentProxy()).checkRouteAssociatedEntity(form.getServiceId());
         TemplateUpsertForm templateForm = form.getTemplate();
         templateForm.setName(LocalDateTime.now().toString());
         templateForm.setType(TemplateType.INSTANT);
@@ -109,7 +110,7 @@ public class RouterHandlerImpl implements RouteHandler {
         if (deleted > 0) {
             // remove associated instant template
             templateHandler.removeByIdAndType(record.getTemplateId(), TemplateType.INSTANT);
-            publish(RefreshEvent.Operation.DELETE_ROUTES, record);
+            ((RouteHandlerImpl) AopContext.currentProxy()).publish(RefreshEvent.Operation.DELETE_ROUTES, record);
         }
         return deleted;
     }
@@ -122,7 +123,7 @@ public class RouterHandlerImpl implements RouteHandler {
         int updated = routeMapper.update(entity);
         if (updated > 0) {
             RouteEntity record = routeMapper.selectById(form.getId());
-            publish(RefreshEvent.Operation.SAVE_ROUTES, record);
+            ((RouteHandlerImpl) AopContext.currentProxy()).publish(RefreshEvent.Operation.SAVE_ROUTES, record);
         }
         return updated;
     }
@@ -171,7 +172,7 @@ public class RouterHandlerImpl implements RouteHandler {
         if (disabled > 0) {
             RouteEntity entity = new RouteEntity();
             entity.setId(id);
-            publish(RefreshEvent.Operation.DELETE_ROUTES, entity);
+            ((RouteHandlerImpl) AopContext.currentProxy()).publish(RefreshEvent.Operation.DELETE_ROUTES, entity);
         }
         return disabled;
     }
@@ -182,7 +183,7 @@ public class RouterHandlerImpl implements RouteHandler {
         int enabled = routeMapper.enable(id);
         if (enabled > 0) {
             RouteEntity record = routeMapper.selectById(id);
-            publish(RefreshEvent.Operation.SAVE_ROUTES, record);
+            ((RouteHandlerImpl) AopContext.currentProxy()).publish(RefreshEvent.Operation.SAVE_ROUTES, record);
         }
         return enabled;
     }

@@ -18,6 +18,7 @@ import com.yameizitd.gateway.spoiler.mapper.ServiceMapper;
 import com.yameizitd.gateway.spoiler.mapstruct.ServiceMapstruct;
 import com.yameizitd.gateway.spoiler.util.PageUtils;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.aop.framework.AopContext;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import reactor.core.publisher.Mono;
@@ -53,7 +54,7 @@ public class ServiceHandlerImpl implements ServiceHandler {
         ServiceEntity entity = serviceMapstruct.createForm2entity(form);
         int inserted = serviceMapper.insert(entity);
         if (inserted > 0) {
-            publish(RefreshEvent.Operation.SAVE_SERVICES, entity);
+            ((ServiceHandlerImpl) AopContext.currentProxy()).publish(RefreshEvent.Operation.SAVE_SERVICES, entity);
         }
         return inserted;
     }
@@ -72,7 +73,7 @@ public class ServiceHandlerImpl implements ServiceHandler {
             int removedInstances = instanceHandler.removeByServiceId(id);
             ServiceEntity entity = new ServiceEntity();
             entity.setId(id);
-            publish(RefreshEvent.Operation.DELETE_SERVICES, entity);
+            ((ServiceHandlerImpl) AopContext.currentProxy()).publish(RefreshEvent.Operation.DELETE_SERVICES, entity);
         }
         return deleted;
     }
@@ -83,8 +84,8 @@ public class ServiceHandlerImpl implements ServiceHandler {
         ServiceEntity entity = serviceMapstruct.updateForm2entity(form);
         int updated = serviceMapper.update(entity);
         if (updated > 0) {
-            publish(RefreshEvent.Operation.DELETE_SERVICES, entity);
-            publish(RefreshEvent.Operation.SAVE_SERVICES, entity);
+            ((ServiceHandlerImpl) AopContext.currentProxy()).publish(RefreshEvent.Operation.DELETE_SERVICES, entity);
+            ((ServiceHandlerImpl) AopContext.currentProxy()).publish(RefreshEvent.Operation.SAVE_SERVICES, entity);
         }
         return updated;
     }
@@ -96,7 +97,7 @@ public class ServiceHandlerImpl implements ServiceHandler {
         if (disabled > 0) {
             ServiceEntity entity = new ServiceEntity();
             entity.setId(id);
-            publish(RefreshEvent.Operation.DELETE_SERVICES, entity);
+            ((ServiceHandlerImpl) AopContext.currentProxy()).publish(RefreshEvent.Operation.DELETE_SERVICES, entity);
         }
         return disabled;
     }
@@ -106,7 +107,10 @@ public class ServiceHandlerImpl implements ServiceHandler {
     public int enable(long id) {
         int enabled = serviceMapper.enable(id);
         if (enabled > 0) {
-            publish(RefreshEvent.Operation.SAVE_SERVICES, serviceMapper.selectById(id));
+            ((ServiceHandlerImpl) AopContext.currentProxy()).publish(
+                    RefreshEvent.Operation.SAVE_SERVICES,
+                    serviceMapper.selectById(id)
+            );
             int enabledInstances = instanceHandler.enableByServiceId(id);
         }
         return enabled;
