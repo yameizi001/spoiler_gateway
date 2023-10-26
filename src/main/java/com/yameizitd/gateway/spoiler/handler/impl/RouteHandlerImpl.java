@@ -7,10 +7,9 @@ import com.yameizitd.gateway.spoiler.domain.entity.RouteEntity;
 import com.yameizitd.gateway.spoiler.domain.entity.ServiceEntity;
 import com.yameizitd.gateway.spoiler.domain.form.*;
 import com.yameizitd.gateway.spoiler.domain.view.RouteView;
-import com.yameizitd.gateway.spoiler.eventbus.EventPublisher;
 import com.yameizitd.gateway.spoiler.eventbus.RefreshEvent;
-import com.yameizitd.gateway.spoiler.eventbus.RouteRefreshEvent;
 import com.yameizitd.gateway.spoiler.exception.impl.EntryNotExistException;
+import com.yameizitd.gateway.spoiler.handler.EventHandler;
 import com.yameizitd.gateway.spoiler.handler.RouteHandler;
 import com.yameizitd.gateway.spoiler.handler.TemplateHandler;
 import com.yameizitd.gateway.spoiler.interceptor.IPage;
@@ -20,16 +19,12 @@ import com.yameizitd.gateway.spoiler.mapstruct.RouteMapstruct;
 import com.yameizitd.gateway.spoiler.util.JacksonUtils;
 import com.yameizitd.gateway.spoiler.util.PageUtils;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.aop.framework.AopContext;
 import org.springframework.cloud.gateway.route.RouteDefinition;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import reactor.core.publisher.Mono;
 
-import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 @Slf4j
 @Service
@@ -37,29 +32,29 @@ public class RouteHandlerImpl implements RouteHandler {
     private final RouteMapper routeMapper;
     private final ServiceMapper serviceMapper;
     private final RouteMapstruct routeMapstruct;
-    private final EventPublisher eventPublisher;
     private final TemplateHandler templateHandler;
+    private final EventHandler eventHandler;
 
     public RouteHandlerImpl(RouteMapper routeMapper,
                             ServiceMapper serviceMapper,
                             RouteMapstruct routeMapstruct,
-                            EventPublisher eventPublisher,
-                            TemplateHandler templateHandler) {
+                            TemplateHandler templateHandler,
+                            EventHandler eventHandler) {
         this.routeMapper = routeMapper;
         this.serviceMapper = serviceMapper;
         this.routeMapstruct = routeMapstruct;
-        this.eventPublisher = eventPublisher;
         this.templateHandler = templateHandler;
+        this.eventHandler = eventHandler;
     }
 
     @Transactional
     @Override
     public int create(RouteCreateForm form) {
-        ((RouteHandlerImpl) AopContext.currentProxy()).checkRouteAssociatedEntity(form.getServiceId());
+        checkRouteAssociatedEntity(form.getServiceId());
         RouteEntity entity = routeMapstruct.createForm2entity(form);
         int inserted = routeMapper.insert(entity);
         if (inserted > 0) {
-            ((RouteHandlerImpl) AopContext.currentProxy()).publish(RefreshEvent.Operation.SAVE_ROUTES, entity);
+            eventHandler.publish(RefreshEvent.Operation.SAVE_ROUTES, entity);
         }
         return inserted;
     }
@@ -74,7 +69,7 @@ public class RouteHandlerImpl implements RouteHandler {
     @Transactional
     @Override
     public int createFromTemplate(RouteWithTemplateUpsertForm form) {
-        ((RouteHandlerImpl) AopContext.currentProxy()).checkRouteAssociatedEntity(form.getServiceId());
+        checkRouteAssociatedEntity(form.getServiceId());
         TemplateUpsertForm templateForm = form.getTemplate();
         templateForm.setName(LocalDateTime.now().toString());
         templateForm.setType(TemplateType.INSTANT);
@@ -110,7 +105,7 @@ public class RouteHandlerImpl implements RouteHandler {
         if (deleted > 0) {
             // remove associated instant template
             templateHandler.removeByIdAndType(record.getTemplateId(), TemplateType.INSTANT);
-            ((RouteHandlerImpl) AopContext.currentProxy()).publish(RefreshEvent.Operation.DELETE_ROUTES, record);
+            eventHandler.publish(RefreshEvent.Operation.DELETE_ROUTES, record);
         }
         return deleted;
     }
@@ -123,7 +118,7 @@ public class RouteHandlerImpl implements RouteHandler {
         int updated = routeMapper.update(entity);
         if (updated > 0) {
             RouteEntity record = routeMapper.selectById(form.getId());
-            ((RouteHandlerImpl) AopContext.currentProxy()).publish(RefreshEvent.Operation.SAVE_ROUTES, record);
+            eventHandler.publish(RefreshEvent.Operation.SAVE_ROUTES, record);
         }
         return updated;
     }
@@ -172,7 +167,7 @@ public class RouteHandlerImpl implements RouteHandler {
         if (disabled > 0) {
             RouteEntity entity = new RouteEntity();
             entity.setId(id);
-            ((RouteHandlerImpl) AopContext.currentProxy()).publish(RefreshEvent.Operation.DELETE_ROUTES, entity);
+            eventHandler.publish(RefreshEvent.Operation.DELETE_ROUTES, entity);
         }
         return disabled;
     }
@@ -183,7 +178,7 @@ public class RouteHandlerImpl implements RouteHandler {
         int enabled = routeMapper.enable(id);
         if (enabled > 0) {
             RouteEntity record = routeMapper.selectById(id);
-            ((RouteHandlerImpl) AopContext.currentProxy()).publish(RefreshEvent.Operation.SAVE_ROUTES, record);
+            eventHandler.publish(RefreshEvent.Operation.SAVE_ROUTES, record);
         }
         return enabled;
     }
@@ -194,19 +189,5 @@ public class RouteHandlerImpl implements RouteHandler {
         List<RichRouteEntity> records = routeMapper.selectByOptions(query, page);
         page.setRecords(records);
         return PageUtils.map(page, routeMapstruct::richEntity2view);
-    }
-
-    private void publish(RefreshEvent.Operation operation, RouteEntity entity) {
-        if (entity != null) {
-            publish(operation, List.of(entity));
-        }
-    }
-
-    private void publish(RefreshEvent.Operation operation, List<RouteEntity> entities) {
-        if (entities != null && !entities.isEmpty()) {
-            List<RouteDefinition> definitions = entities.stream().map(routeMapstruct::entity2definition).toList();
-            RouteRefreshEvent event = new RouteRefreshEvent(operation, definitions);
-            eventPublisher.publish(Mono.just(event)).block(Duration.of(2L, TimeUnit.SECONDS.toChronoUnit()));
-        }
     }
 }

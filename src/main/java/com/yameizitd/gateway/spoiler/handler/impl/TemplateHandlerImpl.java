@@ -13,12 +13,11 @@ import com.yameizitd.gateway.spoiler.domain.view.ElementView;
 import com.yameizitd.gateway.spoiler.domain.view.PropertyValuesView;
 import com.yameizitd.gateway.spoiler.domain.view.SimpleTemplateView;
 import com.yameizitd.gateway.spoiler.domain.view.TemplateDetailView;
-import com.yameizitd.gateway.spoiler.eventbus.EventPublisher;
 import com.yameizitd.gateway.spoiler.eventbus.RefreshEvent;
-import com.yameizitd.gateway.spoiler.eventbus.RouteRefreshEvent;
 import com.yameizitd.gateway.spoiler.exception.impl.EntryNotExistException;
 import com.yameizitd.gateway.spoiler.exception.impl.IllegalValueException;
 import com.yameizitd.gateway.spoiler.exception.impl.RouteInvalidException;
+import com.yameizitd.gateway.spoiler.handler.EventHandler;
 import com.yameizitd.gateway.spoiler.handler.TemplateHandler;
 import com.yameizitd.gateway.spoiler.interceptor.IPage;
 import com.yameizitd.gateway.spoiler.mapper.*;
@@ -29,59 +28,57 @@ import com.yameizitd.gateway.spoiler.mapstruct.TemplateMapstruct;
 import com.yameizitd.gateway.spoiler.route.RouteDefinitionChecker;
 import com.yameizitd.gateway.spoiler.util.JacksonUtils;
 import com.yameizitd.gateway.spoiler.util.PageUtils;
-import org.springframework.aop.framework.AopContext;
 import org.springframework.cloud.gateway.route.RouteDefinition;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
-import reactor.core.publisher.Mono;
 
-import java.time.Duration;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
 public class TemplateHandlerImpl implements TemplateHandler {
+    private final TemplateMapper templateMapper;
     private final ElementMapper elementMapper;
     private final PropertyMapper propertyMapper;
-    private final TemplateMapper templateMapper;
     private final TemplateElementPropertyMapper templateElementPropertyMapper;
     private final RouteMapper routeMapper;
-    private final ElementMapstruct elementMapstruct;
     private final TemplateMapstruct templateMapstruct;
+    private final ElementMapstruct elementMapstruct;
     private final PropertyValuesMapstruct propertyValuesMapstruct;
     private final RouteMapstruct routeMapstruct;
     private final RouteDefinitionChecker routeDefinitionChecker;
-    private final EventPublisher eventPublisher;
+    private final EventHandler eventHandler;
 
-    public TemplateHandlerImpl(ElementMapper elementMapper,
+    public TemplateHandlerImpl(TemplateMapper templateMapper,
+                               ElementMapper elementMapper,
                                PropertyMapper propertyMapper,
-                               TemplateMapper templateMapper,
                                TemplateElementPropertyMapper templateElementPropertyMapper,
                                RouteMapper routeMapper,
-                               ElementMapstruct elementMapstruct,
                                TemplateMapstruct templateMapstruct,
+                               ElementMapstruct elementMapstruct,
                                PropertyValuesMapstruct propertyValuesMapstruct,
                                RouteMapstruct routeMapstruct,
                                RouteDefinitionChecker routeDefinitionChecker,
-                               EventPublisher eventPublisher) {
+                               EventHandler eventHandler) {
+        this.templateMapper = templateMapper;
         this.elementMapper = elementMapper;
         this.propertyMapper = propertyMapper;
-        this.templateMapper = templateMapper;
         this.templateElementPropertyMapper = templateElementPropertyMapper;
         this.routeMapper = routeMapper;
-        this.elementMapstruct = elementMapstruct;
         this.templateMapstruct = templateMapstruct;
+        this.elementMapstruct = elementMapstruct;
         this.propertyValuesMapstruct = propertyValuesMapstruct;
         this.routeMapstruct = routeMapstruct;
         this.routeDefinitionChecker = routeDefinitionChecker;
-        this.eventPublisher = eventPublisher;
+        this.eventHandler = eventHandler;
     }
 
     @Transactional
     @Override
     public RouteDefinition checkAndApply(TemplateUpsertForm form) {
-        return ((TemplateHandlerImpl) AopContext.currentProxy()).checkAndApply0(form);
+        return checkAndApply0(form);
     }
 
     public RouteDefinition checkAndApply0(TemplateUpsertForm form) {
@@ -165,7 +162,7 @@ public class TemplateHandlerImpl implements TemplateHandler {
     public RouteDefinition create(TemplateUpsertForm form) {
         // check template valid
         RouteDefinition routeDefinition = checkAndApply(form);
-        long id = ((TemplateHandlerImpl) AopContext.currentProxy()).createWithoutCheck(form);
+        long id = createWithoutCheck(form);
         routeDefinition.setId(String.valueOf(id));
         return routeDefinition;
     }
@@ -262,7 +259,7 @@ public class TemplateHandlerImpl implements TemplateHandler {
             RouteDefinition routeDefinition = create(form);
             if (routeDefinition != null) {
                 // batch update associated routes
-                ((TemplateHandlerImpl) AopContext.currentProxy()).batchEditByDefinition(routeDefinition);
+                batchEditByDefinition(routeDefinition);
             }
             return routeDefinition;
         }
@@ -274,10 +271,12 @@ public class TemplateHandlerImpl implements TemplateHandler {
         String predicates = JacksonUtils.list2string(routeDefinition.getPredicates());
         String filters = JacksonUtils.list2string(routeDefinition.getFilters());
         String metadata = JacksonUtils.map2string(routeDefinition.getMetadata());
-        batchEdit(1L, Long.valueOf(templateId), predicates, filters, metadata);
+        List<RouteEntity> entities = new ArrayList<>();
+        batchEdit(1L, Long.valueOf(templateId), predicates, filters, metadata, entities);
+        eventHandler.publish(RefreshEvent.Operation.SAVE_ROUTES, entities);
     }
 
-    private void batchEdit(long pageNum, Long templateId, String predicates, String filters, String metadata) {
+    private void batchEdit(long pageNum, Long templateId, String predicates, String filters, String metadata, List<RouteEntity> collector) {
         List<RichRouteEntity> records = routeMapper.selectByOptions(
                 new RouteQueryForm(
                         null,
@@ -305,11 +304,8 @@ public class TemplateHandlerImpl implements TemplateHandler {
                 .map(routeMapstruct::richEntity2entity)
                 .toList();
         routeMapper.batchUpdate(entities);
-        eventPublisher.publish(Mono.just(new RouteRefreshEvent(
-                RefreshEvent.Operation.SAVE_ROUTES,
-                entities.stream().map(routeMapstruct::entity2definition).toList()
-        ))).block(Duration.ofSeconds(2L));
-        batchEdit(++pageNum, templateId, predicates, filters, metadata);
+        collector.addAll(entities);
+        batchEdit(++pageNum, templateId, predicates, filters, metadata, collector);
     }
 
     @Override
