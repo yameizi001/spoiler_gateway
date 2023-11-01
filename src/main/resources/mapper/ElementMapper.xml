@@ -38,10 +38,8 @@
 
     <select id="inuse">
         select exists (
-            select element_id from spoiler_gateway_b_property where element_id = #{id}
-            union
             select element_id from spoiler_gateway_r_template_element where element_id = #{id}
-        union
+            union
             select element_id from spoiler_gateway_r_template_element_property where element_id = #{id}
         )
         limit 1;

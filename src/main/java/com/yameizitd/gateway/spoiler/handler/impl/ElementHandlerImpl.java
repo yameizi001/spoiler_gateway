@@ -8,6 +8,7 @@ import com.yameizitd.gateway.spoiler.exception.impl.EntryInuseException;
 import com.yameizitd.gateway.spoiler.handler.ElementHandler;
 import com.yameizitd.gateway.spoiler.interceptor.IPage;
 import com.yameizitd.gateway.spoiler.mapper.ElementMapper;
+import com.yameizitd.gateway.spoiler.mapper.FileMapper;
 import com.yameizitd.gateway.spoiler.mapper.PropertyMapper;
 import com.yameizitd.gateway.spoiler.mapstruct.ElementMapstruct;
 import com.yameizitd.gateway.spoiler.util.PageUtils;
@@ -20,13 +21,16 @@ import java.util.List;
 public class ElementHandlerImpl implements ElementHandler {
     private final ElementMapper elementMapper;
     private final PropertyMapper propertyMapper;
+    private final FileMapper fileMapper;
     private final ElementMapstruct elementMapstruct;
 
     public ElementHandlerImpl(ElementMapper elementMapper,
                               PropertyMapper propertyMapper,
+                              FileMapper fileMapper,
                               ElementMapstruct elementMapstruct) {
         this.elementMapper = elementMapper;
         this.propertyMapper = propertyMapper;
+        this.fileMapper = fileMapper;
         this.elementMapstruct = elementMapstruct;
     }
 
@@ -45,6 +49,7 @@ public class ElementHandlerImpl implements ElementHandler {
         if (inuse) {
             throw new EntryInuseException("Element is inuse");
         }
+        fileMapper.deleteByElementId(id);
         int deleted = elementMapper.delete(id);
         if (deleted > 0) {
             propertyMapper.deleteByElementId(id);

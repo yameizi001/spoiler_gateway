@@ -276,7 +276,12 @@ public class TemplateHandlerImpl implements TemplateHandler {
         eventHandler.publish(RefreshEvent.Operation.SAVE_ROUTES, entities);
     }
 
-    private void batchEdit(long pageNum, Long templateId, String predicates, String filters, String metadata, List<RouteEntity> collector) {
+    private void batchEdit(long pageNum,
+                           Long templateId,
+                           String predicates,
+                           String filters,
+                           String metadata,
+                           List<RouteEntity> collector) {
         List<RichRouteEntity> records = routeMapper.selectByOptions(
                 new RouteQueryForm(
                         null,

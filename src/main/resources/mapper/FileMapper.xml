@@ -14,6 +14,16 @@
         delete from spoiler_gateway_b_file where "id" = #{id}
     </delete>
 
+    <delete id="deleteByPath">
+        delete from spoiler_gateway_b_file where "path" = #{path}
+    </delete>
+
+    <delete id="deleteByElementId">
+        delete from spoiler_gateway_b_file where "path" = (
+            select "icon" from spoiler_gateway_b_element where "id" = #{elementId}
+        )
+    </delete>
+
     <select id="selectById" resultType="com.yameizitd.gateway.spoiler.domain.entity.FileEntity">
         select "id", "name", "path", "bytes" from spoiler_gateway_b_file where "id" = #{id} limit 1
     </select>

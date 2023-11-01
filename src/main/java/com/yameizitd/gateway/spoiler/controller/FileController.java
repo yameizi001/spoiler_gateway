@@ -38,6 +38,15 @@ public class FileController {
                 .map(GenericResp::ok);
     }
 
+    @ResponseBody
+    @DeleteMapping("/file")
+    public Mono<GenericResp<Integer>> remove(@RequestParam("path") String path) {
+        return Mono.just(path)
+                .publishOn(Schedulers.boundedElastic())
+                .map(fileMapper::deleteByPath)
+                .map(GenericResp::ok);
+    }
+
     @GetMapping("/file/{dir}/{id}.{suffix}")
     public Mono<Void> download(@PathVariable("dir") String dir,
                                @PathVariable("id") Long id,

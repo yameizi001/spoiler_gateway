@@ -10,5 +10,9 @@ public interface FileMapper {
 
     int delete(Long id);
 
+    int deleteByPath(String path);
+
+    int deleteByElementId(Long elementId);
+
     FileEntity selectById(Long id);
 }
