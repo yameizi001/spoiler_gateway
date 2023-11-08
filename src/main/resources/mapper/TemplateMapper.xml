@@ -55,7 +55,7 @@
                 and "name" like concat('%', #{query.name}, '%')
             </if>
             <if test="type != null">
-                "type" = #{type}
+                and "type" = #{type}
             </if>
         </where>
         order by

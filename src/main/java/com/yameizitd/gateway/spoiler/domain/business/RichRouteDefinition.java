@@ -61,7 +61,7 @@ public class RichRouteDefinition implements Serializable {
         for (PropertyValues propertyValues : propertyValuesList) {
             String key = propertyValues.getKey();
             ArrayNode array = (ArrayNode) propertyValues.getValues();
-            if (key == null) {
+            if (!StringUtils.hasLength(key)) {
                 for (JsonNode node : array) {
                     args.put(NameUtils.generateName(i++), node.asText());
                 }

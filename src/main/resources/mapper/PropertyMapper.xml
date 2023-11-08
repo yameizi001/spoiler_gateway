@@ -61,6 +61,6 @@
             </if>
         </where>
         order by
-            "id" desc
+            "id"
     </select>
 </mapper>
