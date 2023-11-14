@@ -36,6 +36,7 @@ import org.springframework.util.StringUtils;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class TemplateHandlerImpl implements TemplateHandler {
@@ -94,17 +95,23 @@ public class TemplateHandlerImpl implements TemplateHandler {
     private RichRouteDefinition checkTemplateValid(TemplateUpsertForm form) {
         RichRouteDefinition richRouteDefinition = new RichRouteDefinition();
         List<ElementWithPropertiesCreateForm> predicates = form.getPredicates();
-        for (ElementWithPropertiesCreateForm predicate : predicates) {
-            richRouteDefinition.getPredicates().add(checkElementPropertiesValid(predicate));
-        }
+        Optional.ofNullable(predicates).ifPresent(list -> {
+            for (ElementWithPropertiesCreateForm predicate : list) {
+                richRouteDefinition.getPredicates().add(checkElementPropertiesValid(predicate));
+            }
+        });
         List<ElementWithPropertiesCreateForm> filters = form.getFilters();
-        for (ElementWithPropertiesCreateForm filter : filters) {
-            richRouteDefinition.getFilters().add(checkElementPropertiesValid(filter));
-        }
+        Optional.ofNullable(filters).ifPresent(list -> {
+            for (ElementWithPropertiesCreateForm filter : list) {
+                richRouteDefinition.getFilters().add(checkElementPropertiesValid(filter));
+            }
+        });
         List<PropertyValuesCreateForm> metadata = form.getMetadata();
-        for (PropertyValuesCreateForm meta : metadata) {
-            richRouteDefinition.getMetadata().add(checkTemplatePropertiesValid(-1L, meta));
-        }
+        Optional.ofNullable(metadata).ifPresent(list -> {
+            for (PropertyValuesCreateForm meta : list) {
+                richRouteDefinition.getMetadata().add(checkTemplatePropertiesValid(-1L, meta));
+            }
+        });
         return richRouteDefinition;
     }
 

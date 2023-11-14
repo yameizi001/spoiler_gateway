@@ -5,6 +5,7 @@ import lombok.*;
 import java.io.Serial;
 import java.io.Serializable;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Data
@@ -19,9 +20,9 @@ public class TemplateDetailView implements Serializable {
     private String id;
     private String name;
     private String description;
-    private List<ElementView> predicates;
-    private List<ElementView> filters;
-    private List<PropertyValuesView> metadata;
+    private List<ElementView> predicates = new ArrayList<>();
+    private List<ElementView> filters = new ArrayList<>();
+    private List<PropertyValuesView> metadata = new ArrayList<>();
     private LocalDateTime createTime;
     private LocalDateTime updateTime;
 }
