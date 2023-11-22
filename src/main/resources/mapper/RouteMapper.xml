@@ -116,7 +116,7 @@
             t."id" = r."template_id"
         <where>
             <if test="query.id != null">
-                and r."id" = #{id}
+                and r."id" = #{query.id}
             </if>
             <if test="query.serviceId != null">
                 and r."service_id" = #{query.serviceId}
