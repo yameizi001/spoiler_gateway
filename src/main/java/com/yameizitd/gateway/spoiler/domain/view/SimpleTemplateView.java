@@ -1,5 +1,6 @@
 package com.yameizitd.gateway.spoiler.domain.view;
 
+import com.yameizitd.gateway.spoiler.domain.TemplateType;
 import lombok.*;
 
 import java.io.Serial;
@@ -18,6 +19,7 @@ public class SimpleTemplateView implements Serializable {
     private String id;
     private String name;
     private String description;
+    private TemplateType type;
     private LocalDateTime createTime;
     private LocalDateTime updateTime;
 }

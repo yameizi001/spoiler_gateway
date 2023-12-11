@@ -32,6 +32,7 @@ public interface TemplateMapstruct {
     @Mapping(source = "type", target = "type", qualifiedByName = "templateType2short")
     TemplateEntity upsertForm2entity0(TemplateUpsertForm form);
 
+    @Mapping(source = "type", target = "type", qualifiedByName = "short2templateType")
     SimpleTemplateView entity2simpleView(TemplateEntity entity);
 
     TemplateDetailView entity2detail(TemplateEntity entity);
@@ -42,5 +43,13 @@ public interface TemplateMapstruct {
             return null;
         }
         return (short) type.ordinal();
+    }
+
+    @Named("short2templateType")
+    default TemplateType short2templateType(Short ordinal) {
+        if (ordinal == null) {
+            return null;
+        }
+        return TemplateType.values()[ordinal];
     }
 }
